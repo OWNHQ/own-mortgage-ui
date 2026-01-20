@@ -45,10 +45,18 @@
         <Accordion type="single" collapsible class="mt-3">
             <AccordionItem value="loan-default">
                 <AccordionTrigger class="text-sm text-gray-400 hover:text-gray-200">
-                    Loan Default
+                    Loan Default & Liquidation
                 </AccordionTrigger>
                 <AccordionContent>
+                    <p class="leading-relaxed text-sm sm:text-base mb-4 text-justify">
+                        The loan can be liquidated by anyone if repayments fall below the required threshold at any point in time. 
+                        In this case, a liquidation means that the fungible collateral (weETH) will be claimable pro-rata based on the contribution in the ERC4626 vault. 
+                        This is purely handled by smart contract functions that validate whether sufficient repayments were made at particular points in time following the liquidation threshold with no reliance on price oracles.
+                    </p>
                     <LoanDefaultGraph />
+                    <p class="leading-relaxed text-xs sm:text-sm mt-4 text-justify text-gray-400 italic">
+                        Important: The loan mechanics do not purposefully include price-based liquidation. The decision to fund the loan should be made with the expectation that in 5 years the value of weETH will not be 25% lower than it is today.
+                    </p>
                 </AccordionContent>
             </AccordionItem>
             

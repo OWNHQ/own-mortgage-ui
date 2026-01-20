@@ -14,6 +14,10 @@
                         By distributing risk across many lenders instead of relying on one, this setup encourages community involvement and ensures more accessible and sustainable funding.
                     </p>
 
+                    <div class="my-4 flex justify-center">
+                        <img src="/images/DeFiMortgage.png" alt="DeFi Mortgage Flow" class="w-full"/>
+                    </div>
+
                     <a href="https://paragraph.com/@bordel/decentralized-crowdloaning" target="_blank">
                         <Button variant="outline" class="w-full">
                             <span>Full article about Bordel Mortgage</span>

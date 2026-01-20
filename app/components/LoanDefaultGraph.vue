@@ -9,7 +9,7 @@
                     <span class="font-semibold">Minimal Repayment Path</span>
                     Displays the minimum cumulative repayment required over time to keep the loan from defaulting. 
                     The line begins at zero and increases as the required payments are made. 
-                    If the borrower fails to meet these minimum payments at any point, the loan goes into default.
+                    If the borrower fails to meet these minimum payments at any point, the loan goes into default and the collateral can be liquidated.
 
                 </li>
             </ul>
