@@ -14,9 +14,18 @@
                         By distributing risk across many lenders instead of relying on one, this setup encourages community involvement and ensures more accessible and sustainable funding.
                     </p>
 
-                    <div class="my-4 flex justify-center">
-                        <img src="/images/DeFiMortgage.png" alt="DeFi Mortgage Flow" class="w-full"/>
-                    </div>
+                    <Dialog v-model:open="isImageDialogOpen">
+                        <DialogTrigger as-child>
+                            <div class="my-4 flex justify-center cursor-pointer hover:opacity-80 transition-opacity">
+                                <img src="/images/DeFiMortgage.png" alt="DeFi Mortgage Flow" class="w-full"/>
+                            </div>
+                        </DialogTrigger>
+                        <DialogContent class="!max-w-none !w-screen !max-h-none !h-screen p-0 m-0">
+                            <div class="w-full h-full cursor-pointer" @click="isImageDialogOpen = false">
+                                <img src="/images/DeFiMortgage.png" alt="DeFi Mortgage Flow" class="w-full h-full object-contain"/>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
 
                     <a href="https://paragraph.com/@bordel/decentralized-crowdloaning" target="_blank">
                         <Button variant="outline" class="w-full">
@@ -128,6 +137,8 @@
 </template>
 
 <script lang="ts" setup>
+
+const isImageDialogOpen = ref(false)
 
 enum ACCORDION_ITEMS_ID {
     MORTGAGE_WORK = 'mortgage-work',

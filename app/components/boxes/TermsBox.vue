@@ -81,6 +81,29 @@
                     </p>
                 </AccordionContent>
             </AccordionItem>
+            
+            <AccordionItem value="trust-verification">
+                <AccordionTrigger class="text-sm text-gray-400 hover:text-gray-200">
+                    How can I trust this?
+                </AccordionTrigger>
+                <AccordionContent>
+                    <p class="leading-relaxed text-sm sm:text-base mb-3 text-justify">
+                        Don't, verify it! It's open sourced:
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 text-sm sm:text-base">
+                        <li>
+                            <a href="https://github.com/PWNDAO/pwn_protocol/tree/v1.5-deployment-changes" target="_blank" class="text-blue-400 hover:text-blue-300 underline">
+                                Smart contracts
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/PWNDAO/own-mortgage-ui" target="_blank" class="text-blue-400 hover:text-blue-300 underline">
+                                Front-end
+                            </a>
+                        </li>
+                    </ul>
+                </AccordionContent>
+            </AccordionItem>
         </Accordion>
     </div>
 </template>
