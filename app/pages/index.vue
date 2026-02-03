@@ -52,11 +52,11 @@
                   <DescriptionBox />
                   <TermsBox />
               </div>
-              <!-- Right column: ContributeBox, RewardsBox, SupportersBox (PRIMARY ACTION & INCENTIVES) - 1/3 width -->
+              <!-- Right column: ContributeBox, RewardsBox, XFeed (PRIMARY ACTION & INCENTIVES) - 1/3 width -->
               <div class="contents lg:flex lg:flex-col lg:gap-4 lg:w-1/3">
                   <ContributeBox />
                   <RewardsBox />
-                  <SupportersBox />
+                  <XFeed />
               </div>
           </div>
       </div>
