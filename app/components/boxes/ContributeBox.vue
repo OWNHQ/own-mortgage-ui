@@ -270,7 +270,7 @@ const handleDepositClick = async () => {
                 const approveCallData = encodeFunctionData({
                     abi: erc20Abi,
                     functionName: 'approve',
-                    args: [PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS, amountToDepositAdditionally.value],
+                    args: [PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS, lendAmountBigInt.value],
                 })
                 calls.push({
                     to: CREDIT_ADDRESS,
@@ -309,7 +309,7 @@ const handleDepositClick = async () => {
                 }))
 
                 steps.push(new ToastStep({
-                    text: `Approving ${amountToDepositAdditionallyFormatted.value} ${CREDIT_NAME}...`,
+                    text: `Approving ${lendAmountFormatted.value} ${CREDIT_NAME}...`,
                     async fn(step) {
                         await approveForDepositIfNeededMutateAsync({ step })
                         return true
