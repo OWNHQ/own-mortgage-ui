@@ -33,7 +33,7 @@
                   </div>
               </div> -->
               
-              <div class="hidden sm:flex flex-1 items-center justify-end">
+              <div class="flex flex-1 items-center justify-end sm:justify-end">
                   <div class="flex items-center gap-2 py-2" :class="daysRemaining < 7 ? 'px-3 bg-yellow-900/20 border border-yellow-600/30 rounded-lg' : 'px-0'">
                       <span class="text-sm font-semibold" :class="daysRemaining < 7 ? 'text-yellow-400' : 'text-gray-400'">⏱ Deadline:</span>
                       <DeadlineCountdown class="font-bold text-base sm:text-lg" :class="daysRemaining < 7 ? 'text-yellow-400' : 'text-white'" />

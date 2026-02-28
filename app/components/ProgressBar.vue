@@ -20,23 +20,14 @@
                 <img width="24" height="24" :src="CREDIT_ASSET_ICON" :alt="CREDIT_NAME" />
                 <span> {{ CREDIT_NAME }}</span>
             </div>
-            <div class="hidden sm:block absolute -top-7" :style="{ left: `${Number(MINIMAL_CREDIT_AMOUNT_PERCENTAGE) * 100}%`, transform: 'translateX(-50%)' }">
-                <div class="text-xs text-white border border-white px-1 bg-gray-900 rounded">{{ MINIMAL_CREDIT_AMOUNT_PERCENTAGE_FORMATTED }}% Min</div>
-                <div class="relative w-px h-2.5 left-1/2 transform -translate-x-1/2">
-                    <div class="absolute top-0 w-full h-0.75 bg-white"></div>
-                    <div class="absolute bottom-0 w-full h-0.75 bg-white"></div>
-                </div>
-            </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { CREDIT_NAME, MAX_AMOUNT_FORMATTED, CREDIT_ASSET_ICON, MINIMAL_CREDIT_AMOUNT_PERCENTAGE } from '~/constants/proposalConstants'
+import { CREDIT_NAME, MAX_AMOUNT_FORMATTED, CREDIT_ASSET_ICON } from '~/constants/proposalConstants'
 
 const { totalDepositedAssets, totalDepositedAssetsFormatted } = useProposal()
-
-const MINIMAL_CREDIT_AMOUNT_PERCENTAGE_FORMATTED = Number(MINIMAL_CREDIT_AMOUNT_PERCENTAGE) * 100
 
 const totalDepositedAssetsFormattedDecimals = computed(() => {
     return Math.floor(Number(totalDepositedAssetsFormatted.value)).toLocaleString()

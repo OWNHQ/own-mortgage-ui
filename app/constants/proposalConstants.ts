@@ -41,7 +41,7 @@ export const COLLATERAL_ASSET_ICON = '/icons/weeth.svg'
 
 // note: the max amount will be only enforced on frontend, there is no concept of max credit amount
 //  in the smart contracts
-export const MAX_AMOUNT_FORMATTED: number = 250000;
+export const MAX_AMOUNT_FORMATTED: number = 180000;
 // export const MAX_AMOUNT_FORMATTED: number = 200;
 export const MAX_AMOUNT: bigint = parseUnits(String(MAX_AMOUNT_FORMATTED), CREDIT_DECIMALS)
 
