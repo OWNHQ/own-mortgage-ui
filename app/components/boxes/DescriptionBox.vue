@@ -162,7 +162,7 @@ const MEMBERS: Member[] = [
     {
         name: 'Josef Jelacic',
         twitter: 'JosefJ_',
-        profileImage: 'https://pbs.twimg.com/profile_images/1856159212973502464/wgiwZVxy_400x400.jpg',
+        profileImage: 'https://pbs.twimg.com/profile_images/2019822639750041601/XJxPciQw_400x400.jpg',
         bio: 'Bordel co-founder, DeFi innovator focused on onchain mortgages and commmunity organizer hosting events like ETHPrague.'
     },
     {
