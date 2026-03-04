@@ -13,12 +13,14 @@ export enum ToastActionEnum {
   DEPOSIT = 'DEPOSIT',
   ACCEPT_PROPOSAL = 'ACCEPT_PROPOSAL',
   REPAY = 'REPAY',
+  WITHDRAW_LENDER = 'WITHDRAW_LENDER',
 }
 
 const _actionIdToUniqueToastId = {
   [ToastActionEnum.DEPOSIT]: (amount: string, userAddress: Address) => `${ToastActionEnum.DEPOSIT}_${userAddress}_${amount}`,
   [ToastActionEnum.ACCEPT_PROPOSAL]: (creditAmount: string, userAddress: Address) => `${ToastActionEnum.ACCEPT_PROPOSAL}_${userAddress}_${creditAmount}`,
   [ToastActionEnum.REPAY]: (repaymentAmount: string, userAddress: Address) => `${ToastActionEnum.REPAY}_${userAddress}_${repaymentAmount}`,
+  [ToastActionEnum.WITHDRAW_LENDER]: (userAddress: Address) => `${ToastActionEnum.WITHDRAW_LENDER}_${userAddress}`,
 } as const
 
 export type ToastActionId = keyof typeof _actionIdToUniqueToastId

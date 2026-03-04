@@ -10,5 +10,7 @@ enum MutationIds {
     Repay = 'repay',
     UpgradeVault = 'upgradeVault',
     RedeemFromOldVault = 'redeemFromOldVault',
+    WithdrawLender = 'withdrawLender',
+    WithdrawLenderAll = 'withdrawLenderAll',
 }
 export default MutationIds

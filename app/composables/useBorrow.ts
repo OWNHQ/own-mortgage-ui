@@ -193,8 +193,8 @@ export default function useBorrow() {
                 args: [],
             })
 
-            // Get current remaining debt
-            const currentDebt = await getRemainingDebt(loanId)
+            // Hardcoded principal amount: 180,295 USDC (6 decimals)
+            const currentDebt = 180_295_000_000n
 
             // loanData is a tuple: [apr, defaultTimestamp, debtLimitTangent]
             const defaultTimestamp = BigInt(loanData[1])

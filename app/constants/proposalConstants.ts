@@ -55,4 +55,7 @@ export const TOTAL_AMOUNT_TO_REPAY = new Decimal(String(MAX_AMOUNT_FORMATTED))
 // note: holds value between 0 and 1 (e.g. 60% is represented as 0.6)
 export const MINIMAL_CREDIT_AMOUNT_PERCENTAGE: string = new Decimal(formatUnits(MINIMAL_CREDIT_AMOUNT, CREDIT_DECIMALS)).div(formatUnits(MAX_AMOUNT, CREDIT_DECIMALS)).toDecimalPlaces(2, Decimal.ROUND_FLOOR).toString()
 
+export const REPAYMENT_PERIOD_IN_MONTHS = Math.round((LOAN_DURATION - POSTPONEMENT) / (365 / 12 * 86400))
+export const AVG_MONTHLY_PAYMENT = Math.round(TOTAL_AMOUNT_TO_REPAY.toNumber() / REPAYMENT_PERIOD_IN_MONTHS)
+
 export const MINIMAL_APR = 2.5 // used only for displaying purposes
