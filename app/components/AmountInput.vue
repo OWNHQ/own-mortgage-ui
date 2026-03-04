@@ -50,7 +50,7 @@ import useUserDepositStore from '~/composables/useUserDepositStore'
 import useProposal from '~/composables/useProposal'
 
 // Accept inputHeight as a prop, default to h-[40px]
-defineProps({
+const props = defineProps({
     prefilledAmount: {
         type: String,
         default: ''
@@ -66,6 +66,10 @@ defineProps({
     creditName: {
         type: String,
         default: ''
+    },
+    overrideIsDisabled: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -135,6 +139,10 @@ const hasNoCreditAssets = computed(() => {
 })
 
 const isAmountInputDisabled = computed(() => {
+    if (props.overrideIsDisabled) {
+        return true
+    }
+
     if (isPerformingMutations.value) {
         return true
     }

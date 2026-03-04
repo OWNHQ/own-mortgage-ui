@@ -9,21 +9,26 @@ class="bg-gray-900/30 border rounded-xl p-4 sm:p-6 order-3 lg:order-none shadow-
         <hr class="mb-4" />
         <div class="mb-3">
             <AmountInput
-ref="amountInputRef" placeholder="0.0" :prefilled-amount="userDepositFormatted"
-                input-height="h-[5rem] sm:h-[5rem]" :credit-icon="CREDIT_ASSET_ICON" :credit-name="CREDIT_NAME" />
+                ref="amountInputRef" 
+                placeholder="0.0" 
+                :prefilled-amount="userDepositFormatted"
+                input-height="h-[5rem] sm:h-[5rem]"
+                override-is-disabled
+                :credit-icon="CREDIT_ASSET_ICON" :credit-name="CREDIT_NAME" />
             <div v-if="isAmountInputLowerThanUserDeposit" class="mt-2 text-sm text-gray-2">
                 Setting amount to {{ lendAmountFormatted }} {{ CREDIT_NAME }} will withdraw {{ amountToWithdrawFormatted
                 }} {{ CREDIT_NAME }} from your commitment.
             </div>
 
             <Button
-size="lg"
+                size="lg"
                 class="h-[3rem] w-full flex items-center mt-3 pl-6 pr-2 sm:pl-8 sm:pr-4 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-bttn overflow-hidden"
-                :disabled="!canSubmit" @click="handleDepositClick">
+                :disabled="!canSubmit || true" 
+                @click="handleDepositClick">
                 <div class="w-full min-w-0 overflow-hidden">
-                    <div
-                        class="text-base sm:text-lg md:text-2xl font-bold text-left truncate whitespace-nowrap overflow-hidden">
-                        {{ lendButtonText }}</div>
+                    <div class="text-base sm:text-lg md:text-2xl font-bold text-left truncate whitespace-nowrap overflow-hidden">
+                        Deposits ended
+                    </div>
                     <div class="flex items-center gap-1 text-xs sm:text-sm mt-1">
                         <!-- <span v-if="amountToDepositAdditionally > 0n">+ earn minimum {{ MINIMAL_APR }}% or more</span> -->
                     </div>
@@ -117,6 +122,8 @@ const lendButtonText = computed(() => {
         return 'Change amount'
     }
 })
+ 
+console.log(lendButtonText)
 
 const walletBalanceQuery = useReadContract({
     abi: erc20Abi,
