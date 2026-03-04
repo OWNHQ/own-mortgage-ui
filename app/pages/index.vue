@@ -17,6 +17,21 @@
           </div>
       </div>
 
+      <div class="loan-live-banner rounded-xl px-5 py-3 sm:py-4 mb-4">
+            <div class="flex items-center justify-center gap-2.5">
+                <span class="live-dot" />
+                <p class="font-screener text-sm sm:text-lg text-white tracking-wide">
+                    The mortgage is <span class="text-bordel-green font-beon">LIVE</span>
+                    <span class="hidden sm:inline text-gray-400 font-supreme"> — thank you to every single contributor</span>
+                </p>
+            </div>
+            <div class="flex items-center justify-center gap-2 mt-2 text-sm text-gray-400 font-supreme">
+                <span>Next repayment deadline:</span>
+                <span v-if="nextPaymentDeadlineFormatted" class="font-bold" :class="isDeadlineUrgent ? 'text-yellow-400' : 'text-white'">{{ nextPaymentDeadlineFormatted }}</span>
+                <span v-else class="inline-block w-32 h-4 bg-gray-700/50 rounded animate-pulse" />
+            </div>
+        </div>
+
       <div class="bg-card border rounded-xl p-4 sm:p-6 mb-4 shadow-lg order-0">
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4">
               <div class="flex-2">
@@ -65,8 +80,48 @@
 
 <script setup lang="ts">
 import { PROPOSAL_EXPIRATION, MINIMAL_APR } from '~/constants/proposalConstants'
+import { computedAsync } from '@vueuse/core'
 
 // SEO metadata is handled globally in app.vue via useDomainSeoMeta()
+
+const { getLoanId, getNextPaymentDeadline } = useBorrow()
+
+const nextPaymentDeadline = computedAsync(async () => {
+    try {
+        const loanId = await getLoanId()
+        return await getNextPaymentDeadline(loanId)
+    } catch {
+        return null
+    }
+})
+
+const nextPaymentDeadlineFormatted = computed<string | null>(() => {
+    if (!nextPaymentDeadline.value) return null
+    const deadline = Number(nextPaymentDeadline.value) * 1000
+    const date = new Date(deadline)
+    const now = Date.now()
+    const timeUntilDeadline = deadline - now
+
+    if (timeUntilDeadline < 0) {
+        return `Overdue (${date.toLocaleString()})`
+    }
+
+    const days = Math.floor(timeUntilDeadline / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((timeUntilDeadline % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((timeUntilDeadline % (1000 * 60 * 60)) / (1000 * 60))
+
+    if (days > 0) {
+        return `${days} day${days !== 1 ? 's' : ''} ${hours} hour${hours !== 1 ? 's' : ''} (${date.toLocaleString()})`
+    }
+    return `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''} (${date.toLocaleString()})`
+})
+
+const isDeadlineUrgent = computed(() => {
+    if (!nextPaymentDeadline.value) return false
+    const deadline = Number(nextPaymentDeadline.value) * 1000
+    const timeUntilDeadline = deadline - Date.now()
+    return timeUntilDeadline < 7 * 24 * 60 * 60 * 1000 // less than 7 days
+})
 
 const daysRemaining = computed(() => {
     const deadline = new Date(PROPOSAL_EXPIRATION * 1000).getTime()
@@ -86,3 +141,20 @@ const scrollToRewards = () => {
     }
 }
 </script>
+
+<style scoped>
+.loan-live-banner {
+    background: linear-gradient(135deg, rgba(0, 255, 0, 0.06) 0%, transparent 40%, rgba(0, 255, 0, 0.04) 100%);
+    border: 1px solid rgba(0, 255, 0, 0.15);
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #00ff00;
+    box-shadow: 0 0 6px #00ff00, 0 0 12px rgba(0, 255, 0, 0.3);
+    flex-shrink: 0;
+}
+</style>
+
