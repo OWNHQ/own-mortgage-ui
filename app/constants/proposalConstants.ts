@@ -45,12 +45,7 @@ export const MAX_AMOUNT_FORMATTED: number = 180000;
 // export const MAX_AMOUNT_FORMATTED: number = 200;
 export const MAX_AMOUNT: bigint = parseUnits(String(MAX_AMOUNT_FORMATTED), CREDIT_DECIMALS)
 
-export const TOTAL_AMOUNT_TO_REPAY = new Decimal(String(MAX_AMOUNT_FORMATTED))
-  .mul(
-    new Decimal(1).add(
-      new Decimal(LOAN_APY).div(10000).mul(LOAN_DURATION_IN_YEARS)
-    )
-  );
+export const TOTAL_AMOUNT_TO_REPAY = Decimal("192500")
 
 // note: holds value between 0 and 1 (e.g. 60% is represented as 0.6)
 export const MINIMAL_CREDIT_AMOUNT_PERCENTAGE: string = new Decimal(formatUnits(MINIMAL_CREDIT_AMOUNT, CREDIT_DECIMALS)).div(formatUnits(MAX_AMOUNT, CREDIT_DECIMALS)).toDecimalPlaces(2, Decimal.ROUND_FLOOR).toString()

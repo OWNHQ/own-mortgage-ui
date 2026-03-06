@@ -18,7 +18,7 @@
       </div>
 
       <!-- LOAN ACTIVE: Dashboard View -->
-      <template v-if="isLoanActive">
+      <template v-if="isLoanActive || true">
           <div class="loan-live-banner rounded-xl px-5 py-3 sm:py-4 mb-4">
             <div class="flex items-center justify-center gap-2.5">
                 <span class="live-dot" />

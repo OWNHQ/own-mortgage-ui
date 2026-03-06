@@ -51,7 +51,7 @@
             <div class="border rounded-lg p-3 bg-background/50">
                 <div class="text-sm text-gray">Total to Repay</div>
                 <div class="text-lg sm:text-xl font-semibold flex items-center gap-1">
-                    <span>{{ TOTAL_TO_REPAY.toLocaleString() }}</span>
+                    <span>{{ totalOwedFormatted }}</span>
                     <img width="16" height="16" :src="CREDIT_ASSET_ICON" :alt="CREDIT_NAME" />
                 </div>
             </div>
@@ -99,7 +99,6 @@ import {
 } from '~/constants/proposalConstants'
 
 const PRINCIPAL_AMOUNT = 180_295
-const TOTAL_TO_REPAY = 192_500
 
 const {
     loanStatus,
@@ -107,6 +106,7 @@ const {
     totalAmountRepaidFormatted,
     totalCollateralAssetsFormatted,
     nextPaymentDeadline,
+    totalOwedFormatted,
     defaultTimestamp,
 } = useLoanStatus()
 
