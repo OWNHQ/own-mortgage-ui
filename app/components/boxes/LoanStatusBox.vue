@@ -99,7 +99,7 @@ import {
 } from '~/constants/proposalConstants'
 
 const PRINCIPAL_AMOUNT = 180_295
-const TOTAL_TO_REPAY = 202_500
+const TOTAL_TO_REPAY = 192_500
 
 const {
     loanStatus,
