@@ -37,9 +37,9 @@
                     </span>
                 </div>
                 <div v-if="oldVaultUserDeposit > 0n" class="flex justify-between items-center">
-                    <span class="text-gray-400 text-sm">Old Vault Deposit</span>
+                    <span class="text-gray-400 text-sm">Old Vault - Available to Withdraw</span>
                     <span class="font-semibold flex items-center gap-1 text-yellow-400">
-                        {{ oldVaultUserDepositFormatted }}
+                        {{ oldVaultMaxWithdrawFormatted }}
                         <img width="16" height="16" :src="CREDIT_ASSET_ICON" :alt="CREDIT_NAME" />
                         {{ CREDIT_NAME }}
                     </span>
@@ -59,9 +59,9 @@
                 </span>
             </Button>
 
-            <!-- Redeem from old vault -->
+            <!-- Withdraw from old vault -->
             <Button
-                v-if="oldVaultUserDeposit > 0n"
+                v-if="oldVaultUserDeposit > 0n && oldVaultMaxWithdraw > 0n"
                 size="lg"
                 variant="outline"
                 class="h-[3rem] w-full rounded-bttn mb-2"
@@ -69,7 +69,7 @@
                 @click="handleRedeemOldVault"
             >
                 <span class="text-base sm:text-lg font-bold">
-                    Redeem from Old Vault
+                    Withdraw {{ oldVaultMaxWithdrawFormatted }} {{ CREDIT_NAME }} from Old Vault
                 </span>
             </Button>
 
@@ -79,7 +79,7 @@
             </div>
 
             <!-- Nothing to withdraw -->
-            <div v-else-if="maxWithdraw === 0n && oldVaultUserDeposit === 0n" class="text-center py-2">
+            <div v-else-if="maxWithdraw === 0n && oldVaultMaxWithdraw === 0n" class="text-center py-2">
                 <p class="text-gray-400 text-sm">No repayments available to withdraw yet.</p>
             </div>
         </div>
@@ -89,22 +89,23 @@
 <script setup lang="ts">
 import { formatUnits } from 'viem'
 import { CREDIT_NAME, CREDIT_ASSET_ICON, CREDIT_DECIMALS, PROPOSAL_CHAIN_ID } from '~/constants/proposalConstants'
-import { useAccount } from '@wagmi/vue'
-import { useMutation } from '@tanstack/vue-query'
+import { useAccount, useReadContract } from '@wagmi/vue'
 import { ToastStep, Toast, ToastActionEnum } from '~/components/ui/toast/useToastsStore'
 import useActionFlow from '~/components/ui/toast/useActionFlow'
-import MutationIds from '~/constants/mutationIds'
 import { useAppKit } from '@reown/appkit/vue'
 import { OLD_PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS, PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS } from '~/constants/addresses'
 import { formatDecimalPoint } from '~/lib/format-decimals'
+import PWN_CROWDSOURCE_LENDER_VAULT_ABI from '~/assets/abis/v1.5/PWNCrowdsourceLenderVault'
 
 const { address, isConnected } = useAccount()
 const { open } = useAppKit()
 
 const userDepositStore = useUserDepositStore()
-const { userDeposit, oldVaultUserDeposit, oldVaultUserShares, newVaultUserShares, userDepositFormattedDecimals } = storeToRefs(userDepositStore)
+const { userDeposit, oldVaultUserDeposit, userDepositFormattedDecimals } = storeToRefs(userDepositStore)
 
 const { maxWithdrawQuery, refetchLoanData } = useLoanStatus()
+
+// New vault maxWithdraw
 const maxWithdrawResult = maxWithdrawQuery(address)
 const maxWithdraw = computed<bigint>(() => maxWithdrawResult.data.value ?? 0n)
 const maxWithdrawFormatted = computed(() => {
@@ -112,42 +113,29 @@ const maxWithdrawFormatted = computed(() => {
     return formatDecimalPoint(formatUnits(maxWithdraw.value, CREDIT_DECIMALS), 2)
 })
 
-const oldVaultUserDepositFormatted = computed(() => {
-    if (!oldVaultUserDeposit.value) return '0'
-    return formatDecimalPoint(formatUnits(oldVaultUserDeposit.value, CREDIT_DECIMALS), 2)
+// Old vault maxWithdraw
+const oldVaultMaxWithdrawResult = useReadContract({
+    abi: PWN_CROWDSOURCE_LENDER_VAULT_ABI,
+    address: OLD_PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS,
+    functionName: 'maxWithdraw',
+    args: computed(() => [address.value!] as const),
+    query: {
+        enabled: computed(() => !!address.value),
+    },
+})
+const oldVaultMaxWithdraw = computed<bigint>(() => oldVaultMaxWithdrawResult.data.value ?? 0n)
+const oldVaultMaxWithdrawFormatted = computed(() => {
+    if (!oldVaultMaxWithdraw.value) return '0'
+    return formatDecimalPoint(formatUnits(oldVaultMaxWithdraw.value, CREDIT_DECIMALS), 2)
 })
 
-const { withdraw, redeemAll } = useLend()
+const { withdraw } = useLend()
 
 const toast = ref<Toast>()
 let continueFlow: () => Promise<void> | undefined
 
-// Withdraw mutation
-const { isPending: isWithdrawing } = useMutation({
-    mutationKey: [MutationIds.WithdrawLender],
-    mutationFn: async ({ step }: { step: ToastStep }) => {
-        await withdraw(maxWithdraw.value, step)
-    },
-    onSuccess() {
-        refetchLoanData()
-        userDepositStore.refetchUserShares()
-        maxWithdrawResult.refetch()
-    },
-    throwOnError: true,
-})
-
-// Redeem all from old vault mutation
-const { isPending: isRedeemingOldVault } = useMutation({
-    mutationKey: [MutationIds.WithdrawLenderAll],
-    mutationFn: async ({ step }: { step: ToastStep }) => {
-        await redeemAll(OLD_PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS, oldVaultUserShares.value, step)
-    },
-    onSuccess() {
-        refetchLoanData()
-        userDepositStore.refetchUserShares()
-    },
-    throwOnError: true,
-})
+const isWithdrawing = ref(false)
+const isRedeemingOldVault = ref(false)
 
 const handleWithdraw = async () => {
     const steps: ToastStep[] = []
@@ -155,7 +143,7 @@ const handleWithdraw = async () => {
     steps.push(new ToastStep({
         text: `Withdrawing ${maxWithdrawFormatted.value} ${CREDIT_NAME}...`,
         async fn(step) {
-            await withdraw(maxWithdraw.value, step)
+            await withdraw(maxWithdraw.value, step, PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS)
             refetchLoanData()
             userDepositStore.refetchUserShares()
             maxWithdrawResult.refetch()
@@ -170,18 +158,24 @@ const handleWithdraw = async () => {
     }, ToastActionEnum.WITHDRAW_LENDER, address.value!);
     ({ continueFlow } = useActionFlow(toast as Ref<Toast>))
 
-    await continueFlow()
+    isWithdrawing.value = true
+    try {
+        await continueFlow()
+    } finally {
+        isWithdrawing.value = false
+    }
 }
 
 const handleRedeemOldVault = async () => {
     const steps: ToastStep[] = []
 
     steps.push(new ToastStep({
-        text: `Redeeming ${CREDIT_NAME} from old vault...`,
+        text: `Withdrawing ${oldVaultMaxWithdrawFormatted.value} ${CREDIT_NAME} from old vault...`,
         async fn(step) {
-            await redeemAll(OLD_PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS, oldVaultUserShares.value, step)
+            await withdraw(oldVaultMaxWithdraw.value, step, OLD_PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS)
             refetchLoanData()
             userDepositStore.refetchUserShares()
+            oldVaultMaxWithdrawResult.refetch()
             return true
         }
     }))
@@ -189,11 +183,16 @@ const handleRedeemOldVault = async () => {
     toast.value = new Toast({
         steps,
         chainId: PROPOSAL_CHAIN_ID,
-        title: 'Redeeming from Old Vault',
+        title: 'Withdrawing from Old Vault',
     }, ToastActionEnum.WITHDRAW_LENDER, address.value!);
     ({ continueFlow } = useActionFlow(toast as Ref<Toast>))
 
-    await continueFlow()
+    isRedeemingOldVault.value = true
+    try {
+        await continueFlow()
+    } finally {
+        isRedeemingOldVault.value = false
+    }
 }
 </script>
 

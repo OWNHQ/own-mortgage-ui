@@ -63,12 +63,12 @@ export default function useLend() {
         return true
     }
 
-    const withdraw = async (withdrawAmount: bigint, step: ToastStep) => {
+    const withdraw = async (withdrawAmount: bigint, step: ToastStep, vaultAddress: Address) => {
         const withdrawTxReceipt = await sendTransaction({
             abi: PWN_CROWDSOURCE_LENDER_VAULT_ABI,
             functionName: 'withdraw',
             args: [withdrawAmount, userAddress.value!, userAddress.value!],
-            address: PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS,
+            address: vaultAddress,
             chainId: connectedChainId.value,
         }, { step })
         return withdrawTxReceipt

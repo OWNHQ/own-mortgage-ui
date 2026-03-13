@@ -53,4 +53,4 @@ export const MINIMAL_CREDIT_AMOUNT_PERCENTAGE: string = new Decimal(formatUnits(
 export const REPAYMENT_PERIOD_IN_MONTHS = Math.round((LOAN_DURATION - POSTPONEMENT) / (365 / 12 * 86400))
 export const AVG_MONTHLY_PAYMENT = Math.round(TOTAL_AMOUNT_TO_REPAY.toNumber() / REPAYMENT_PERIOD_IN_MONTHS)
 
-export const MINIMAL_APR = 2.5 // used only for displaying purposes
+export const MINIMAL_APR = 5 // used only for displaying purposes

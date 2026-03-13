@@ -10,7 +10,7 @@
                 <AccordionContent>
                     <p class="leading-relaxed text-sm sm:text-base mb-4 text-justify">
                         This mortgage is a decentralized, crowdfunded DeFi loan designed to bootstrap community projects by leveraging crypto collateral (weETH) with a 75% loan-to-value ratio over five years. 
-                        Supporters lend stablecoins (USDC) at a modest interest rate of 2.5%, receiving gradual loan repayments along with non-monetary rewards like memberships and event access. 
+                        Supporters lend stablecoins (USDC) at a modest interest rate of 5%, receiving gradual loan repayments along with non-monetary rewards like memberships and event access. 
                         By distributing risk across many lenders instead of relying on one, this setup encourages community involvement and ensures more accessible and sustainable funding.
                     </p>
 
