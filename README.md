@@ -27,7 +27,7 @@ bun run dev
 
 ## 🏗️ Preview Local Production Build
 
-Generates the production build and opens the preview server on `http://localhost:3000`:
+Builds the production app and opens the preview server on `http://localhost:3000`:
 
 ```bash
 bun run preview
@@ -35,7 +35,20 @@ bun run preview
 
 ### Cloudflare Pages
 
-This project is configured for deployment on Cloudflare Pages, where it's built via `bun run generate-cf-pages`.
+This project now relies on Nuxt server routes for the conference voucher claim flow, so the production deployment must use a Nitro server build instead of static generation.
+
+Recommended Cloudflare Pages build command:
+
+```bash
+bun run build-cf-pages
+```
+
+Cloudflare bindings required for the voucher feature:
+
+- D1 binding named `DB`
+- environment variable `VOUCHER_SIWE_CHAIN_ID` if you need a chain other than mainnet (default: `1`)
+
+The conference voucher schema is in [database/conference-voucher.schema.sql](/home/microhoffman/pwn/own-mortgage-ui/database/conference-voucher.schema.sql). Seed production with a private SQL file derived from [database/conference-voucher.seed.example.sql](/home/microhoffman/pwn/own-mortgage-ui/database/conference-voucher.seed.example.sql), but do not commit real addresses or voucher codes.
 
 ## Linting
 
@@ -55,3 +68,4 @@ bun run lint:fix
 - `app/composables` - Auto-imported composables
 - `app/utils` - Utility functions
 - `server/` - Server-side API routes
+- `database/` - D1 schema and seed examples for the conference voucher feature

@@ -28,3 +28,10 @@ logs
 package-lock.json
 
 .wrangler
+.bun-install
+.bun-tmp
+
+# Private local database seed files
+database/*.local.sql
+
+.codex
