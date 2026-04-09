@@ -1,11 +1,12 @@
-import { createError } from "h3"
-import { requireVoucherSession } from "../../utils/voucher/auth"
+import { createError, readBody } from "h3"
+import { requireVoucherSessionForAddress } from "../../utils/voucher/auth"
 import {
   ensureVoucherSchema,
   getEligibleWalletByAddress,
   isVoucherStorageConfigured,
   markVoucherAsClaimed,
 } from "../../utils/voucher/db"
+import { normalizeWalletAddress } from "../../utils/voucher/security"
 
 export default defineEventHandler(async (event) => {
   await ensureVoucherSchema(event)
@@ -17,9 +18,18 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const session = await requireVoucherSession(event)
+  const body = await readBody<{ address?: string }>(event)
+  if (!body?.address) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Wallet address is required.",
+    })
+  }
 
-  const voucherRecord = await getEligibleWalletByAddress(event, session.address)
+  const normalizedAddress = normalizeWalletAddress(body.address)
+  await requireVoucherSessionForAddress(event, normalizedAddress)
+
+  const voucherRecord = await getEligibleWalletByAddress(event, normalizedAddress)
   if (!voucherRecord) {
     throw createError({
       statusCode: 403,
@@ -27,9 +37,9 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await markVoucherAsClaimed(event, session.address)
+  await markVoucherAsClaimed(event, normalizedAddress)
 
-  const refreshedVoucherRecord = await getEligibleWalletByAddress(event, session.address)
+  const refreshedVoucherRecord = await getEligibleWalletByAddress(event, normalizedAddress)
   if (!refreshedVoucherRecord) {
     throw createError({
       statusCode: 500,

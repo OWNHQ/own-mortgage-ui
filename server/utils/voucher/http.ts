@@ -8,7 +8,6 @@ import {
   setCookie,
 } from "h3"
 import {
-  VOUCHER_DEFAULT_CHAIN_ID,
   VOUCHER_SESSION_COOKIE_NAME,
   VOUCHER_SESSION_TTL_SECONDS,
 } from "./constants"
@@ -27,16 +26,6 @@ export function getVoucherRequestOrigin(event: H3Event): string {
 
 export function getVoucherClaimUri(event: H3Event): string {
   return `${getVoucherRequestOrigin(event)}/conference-voucher`
-}
-
-export function getVoucherChainId(event: H3Event): number {
-  const cloudflareEnv = (event.context.cloudflare as { env?: Record<string, unknown> } | undefined)?.env
-  const rawChainId = cloudflareEnv?.VOUCHER_SIWE_CHAIN_ID
-    ?? process.env.NUXT_VOUCHER_SIWE_CHAIN_ID
-    ?? process.env.VOUCHER_SIWE_CHAIN_ID
-
-  const parsedChainId = Number(rawChainId)
-  return Number.isInteger(parsedChainId) && parsedChainId > 0 ? parsedChainId : VOUCHER_DEFAULT_CHAIN_ID
 }
 
 export function getVoucherSessionCookie(event: H3Event): string | undefined {

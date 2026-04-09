@@ -51,12 +51,39 @@ export async function getVoucherSession(event: H3Event): Promise<{ address: stri
   }
 }
 
+export async function getVoucherSessionForAddress(
+  event: H3Event,
+  address: string,
+): Promise<{ address: string } | null> {
+  const session = await getVoucherSession(event)
+  if (!session || session.address !== address) {
+    return null
+  }
+
+  return session
+}
+
 export async function requireVoucherSession(event: H3Event): Promise<{ address: string }> {
   const session = await getVoucherSession(event)
   if (!session) {
     throw createError({
       statusCode: 401,
       statusMessage: "Wallet verification is required before claiming a voucher.",
+    })
+  }
+
+  return session
+}
+
+export async function requireVoucherSessionForAddress(
+  event: H3Event,
+  address: string,
+): Promise<{ address: string }> {
+  const session = await getVoucherSessionForAddress(event, address)
+  if (!session) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: "Wallet verification is required for this address before claiming a voucher.",
     })
   }
 

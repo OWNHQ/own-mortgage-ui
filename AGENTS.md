@@ -94,9 +94,7 @@ Notes:
 - Public env vars currently used:
   - `NUXT_PUBLIC_MORALIS_API_KEY`
   - `NUXT_PUBLIC_CLARITY_ID`
-- Voucher chain configuration:
-  - Local env example uses `NUXT_VOUCHER_SIWE_CHAIN_ID`
-  - Cloudflare deployments may expose `VOUCHER_SIWE_CHAIN_ID`
+- Voucher verification is Ethereum mainnet only.
 
 ## Validation
 

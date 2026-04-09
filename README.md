@@ -48,7 +48,7 @@ bun run build-cf-pages
 Cloudflare bindings required for the voucher feature:
 
 - D1 binding named `DB`
-- environment variable `VOUCHER_SIWE_CHAIN_ID` if you need a chain other than mainnet (default: `1`)
+- Ethereum mainnet wallet signatures only
 
 The conference voucher schema is in [database/conference-voucher.schema.sql](/home/microhoffman/pwn/own-mortgage-ui/database/conference-voucher.schema.sql). Seed production with a private SQL file derived from [database/conference-voucher.seed.example.sql](/home/microhoffman/pwn/own-mortgage-ui/database/conference-voucher.seed.example.sql), but do not commit real addresses or voucher codes.
 

@@ -1,44 +1,28 @@
 import type { H3Event } from "h3"
-import { hashMessage, createPublicClient, http, parseAbi } from "viem"
-import { mainnet, sepolia } from "viem/chains"
+import { createPublicClient, hashMessage, http, parseAbi } from "viem"
+import { mainnet } from "viem/chains"
 import { SiweMessage } from "siwe"
 import {
   ERC1271_MAGIC_VALUE,
+  VOUCHER_CHAIN_ID,
   VOUCHER_NONCE_TTL_SECONDS,
   VOUCHER_SIWE_STATEMENT,
   VOUCHER_SIWE_VERSION,
 } from "./constants"
-import { getVoucherChainId, getVoucherClaimUri, getVoucherRequestHost } from "./http"
+import { getVoucherClaimUri, getVoucherRequestHost } from "./http"
 import { createFutureIsoTimestamp, normalizeWalletAddress } from "./security"
 
 const erc1271Abi = parseAbi([
   "function isValidSignature(bytes32 _hash, bytes _signature) view returns (bytes4 magicValue)",
 ])
 
-function getChainById(chainId: number) {
-  if (chainId === mainnet.id) {
-    return mainnet
-  }
-
-  if (chainId === sepolia.id) {
-    return sepolia
-  }
-
-  return undefined
-}
-
 async function verifyContractWalletSignature(
   address: string,
   message: SiweMessage,
   signature: string,
 ): Promise<boolean> {
-  const chain = getChainById(message.chainId)
-  if (!chain) {
-    return false
-  }
-
   const publicClient = createPublicClient({
-    chain,
+    chain: mainnet,
     transport: http(),
   })
 
@@ -68,7 +52,7 @@ export function createVoucherSiweMessage(event: H3Event, address: string, nonce:
   const expiresAt = createFutureIsoTimestamp(VOUCHER_NONCE_TTL_SECONDS)
   const siweMessage = new SiweMessage({
     address,
-    chainId: getVoucherChainId(event),
+    chainId: VOUCHER_CHAIN_ID,
     domain: getVoucherRequestHost(event),
     expirationTime: expiresAt,
     issuedAt: new Date().toISOString(),
@@ -98,7 +82,7 @@ export async function verifyVoucherSiweMessage(
     return false
   }
 
-  if (siweMessage.chainId !== getVoucherChainId(event)) {
+  if (siweMessage.chainId !== VOUCHER_CHAIN_ID) {
     return false
   }
 

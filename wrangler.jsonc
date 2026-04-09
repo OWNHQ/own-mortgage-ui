@@ -4,9 +4,6 @@
   "pages_build_output_dir": "dist",
   "compatibility_date": "2026-04-09",
   "compatibility_flags": ["nodejs_compat"],
-  "vars": {
-    "VOUCHER_SIWE_CHAIN_ID": "1"
-  },
   "d1_databases": [
     {
       "binding": "DB",

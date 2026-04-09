@@ -1,5 +1,7 @@
+import { createError, getQuery } from "h3"
+import { getVoucherSessionForAddress } from "../../utils/voucher/auth"
 import { ensureVoucherSchema, getEligibleWalletByAddress, isVoucherStorageConfigured } from "../../utils/voucher/db"
-import { getVoucherSession } from "../../utils/voucher/auth"
+import { normalizeWalletAddress } from "../../utils/voucher/security"
 
 export default defineEventHandler(async (event) => {
   await ensureVoucherSchema(event)
@@ -11,7 +13,19 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const session = await getVoucherSession(event)
+  const query = getQuery(event)
+  const addressParam = Array.isArray(query.address) ? query.address[0] : query.address
+
+  if (!addressParam || typeof addressParam !== "string") {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Wallet address is required.",
+    })
+  }
+
+  const normalizedAddress = normalizeWalletAddress(addressParam)
+
+  const session = await getVoucherSessionForAddress(event, normalizedAddress)
   if (!session) {
     return {
       configured: true,
@@ -19,7 +33,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const voucherRecord = await getEligibleWalletByAddress(event, session.address)
+  const voucherRecord = await getEligibleWalletByAddress(event, normalizedAddress)
   if (!voucherRecord) {
     return {
       configured: true,

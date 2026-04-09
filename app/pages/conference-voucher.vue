@@ -205,7 +205,14 @@ const verifyOwnershipMutation = useMutation({
 
 const claimVoucherMutation = useMutation({
   mutationFn: async () => {
+    if (!address.value) {
+      throw new Error("Connect the eligible wallet before revealing the voucher.")
+    }
+
     return await $fetch<ConferenceVoucherClaimResponse>("/api/voucher/claim", {
+      body: {
+        address: address.value,
+      },
       method: "POST",
     })
   },
