@@ -1,5 +1,12 @@
 import type { H3Event } from "h3"
-import { deleteCookie, getCookie, setCookie } from "h3"
+import {
+  deleteCookie,
+  getCookie,
+  getRequestHost,
+  getRequestIP,
+  getRequestProtocol,
+  setCookie,
+} from "h3"
 import {
   VOUCHER_DEFAULT_CHAIN_ID,
   VOUCHER_SESSION_COOKIE_NAME,
@@ -7,20 +14,11 @@ import {
 } from "./constants"
 
 export function getVoucherRequestHost(event: H3Event): string {
-  return (
-    event.req.headers.get("x-forwarded-host")
-    ?? event.req.headers.get("host")
-    ?? "localhost:8000"
-  )
+  return getRequestHost(event, { xForwardedHost: true })
 }
 
 export function getVoucherRequestProtocol(event: H3Event): "http" | "https" {
-  const forwardedProtocol = event.req.headers.get("x-forwarded-proto")
-  if (forwardedProtocol === "http" || forwardedProtocol === "https") {
-    return forwardedProtocol
-  }
-
-  return getVoucherRequestHost(event).includes("localhost") ? "http" : "https"
+  return getRequestProtocol(event) === "https" ? "https" : "http"
 }
 
 export function getVoucherRequestOrigin(event: H3Event): string {
@@ -62,9 +60,5 @@ export function clearVoucherSessionCookie(event: H3Event): void {
 }
 
 export function getClientIp(event: H3Event): string {
-  const forwarded = event.req.headers.get("cf-connecting-ip")
-    ?? event.req.headers.get("x-forwarded-for")
-    ?? "unknown"
-
-  return forwarded.split(",")[0]!.trim()
+  return getRequestIP(event, { xForwardedFor: true }) ?? "unknown"
 }

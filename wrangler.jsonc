@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "own-mortgage-ui",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2026-04-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "VOUCHER_SIWE_CHAIN_ID": "1"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "replace-with-your-d1-database-name",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ]
+}

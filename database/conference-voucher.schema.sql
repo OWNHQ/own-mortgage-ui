@@ -19,11 +19,3 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
   expires_at TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS request_rate_limits (
-  rate_key TEXT NOT NULL,
-  window_start INTEGER NOT NULL,
-  attempts INTEGER NOT NULL DEFAULT 1,
-  expires_at INTEGER NOT NULL,
-  PRIMARY KEY (rate_key, window_start)
-);

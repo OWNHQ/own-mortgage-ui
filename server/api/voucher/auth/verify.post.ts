@@ -8,7 +8,7 @@ import {
   isVoucherStorageConfigured,
 } from "../../../utils/voucher/db"
 import { createVoucherSession } from "../../../utils/voucher/auth"
-import { enforceVoucherRateLimit, isExpired, normalizeWalletAddress } from "../../../utils/voucher/security"
+import { isExpired, normalizeWalletAddress } from "../../../utils/voucher/security"
 import { verifyVoucherSiweMessage } from "../../../utils/voucher/siwe"
 
 export default defineEventHandler(async (event) => {
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   if (!isVoucherStorageConfigured(event)) {
     throw createError({
       statusCode: 503,
-      statusMessage: "Conference voucher storage is not configured.",
+      statusMessage: "ETHPrague voucher storage is not configured.",
     })
   }
 
@@ -39,13 +39,12 @@ export default defineEventHandler(async (event) => {
     })
   }
   const normalizedAddress = normalizeWalletAddress(siweMessage.address)
-  await enforceVoucherRateLimit(event, "verify", normalizedAddress)
 
   const voucherRecord = await getEligibleWalletByAddress(event, normalizedAddress)
   if (!voucherRecord) {
     throw createError({
       statusCode: 403,
-      statusMessage: "This wallet is not eligible for a conference voucher.",
+      statusMessage: "This wallet is not eligible for an ETHPrague voucher.",
     })
   }
 

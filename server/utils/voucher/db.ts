@@ -44,6 +44,34 @@ interface VoucherBindings {
 
 let schemaInitializationPromise: Promise<void> | null = null
 
+const VOUCHER_SCHEMA_STATEMENTS = [
+  `
+    CREATE TABLE IF NOT EXISTS eligible_wallets (
+      address TEXT PRIMARY KEY,
+      voucher_code TEXT NOT NULL,
+      claimed_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `,
+  `
+    CREATE TABLE IF NOT EXISTS auth_nonces (
+      nonce TEXT PRIMARY KEY,
+      address TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      consumed_at TEXT
+    )
+  `,
+  `
+    CREATE TABLE IF NOT EXISTS auth_sessions (
+      session_token_hash TEXT PRIMARY KEY,
+      address TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )
+  `,
+] as const
+
 export function getVoucherBindings(event: H3Event): VoucherBindings {
   const cloudflareContext = event.context.cloudflare as { env?: VoucherBindings } | undefined
   return cloudflareContext?.env ?? {}
@@ -62,7 +90,7 @@ export function requireVoucherDatabase(event: H3Event): D1Database {
   if (!database) {
     throw createError({
       statusCode: 503,
-      statusMessage: "Conference voucher storage is not configured.",
+      statusMessage: "ETHPrague voucher storage is not configured.",
     })
   }
 
@@ -76,37 +104,11 @@ export async function ensureVoucherSchema(event: H3Event): Promise<void> {
   }
 
   if (!schemaInitializationPromise) {
-    schemaInitializationPromise = database.exec(`
-      CREATE TABLE IF NOT EXISTS eligible_wallets (
-        address TEXT PRIMARY KEY,
-        voucher_code TEXT NOT NULL,
-        claimed_at TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS auth_nonces (
-        nonce TEXT PRIMARY KEY,
-        address TEXT NOT NULL,
-        expires_at TEXT NOT NULL,
-        consumed_at TEXT
-      );
-
-      CREATE TABLE IF NOT EXISTS auth_sessions (
-        session_token_hash TEXT PRIMARY KEY,
-        address TEXT NOT NULL,
-        expires_at TEXT NOT NULL,
-        created_at TEXT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS request_rate_limits (
-        rate_key TEXT NOT NULL,
-        window_start INTEGER NOT NULL,
-        attempts INTEGER NOT NULL DEFAULT 1,
-        expires_at INTEGER NOT NULL,
-        PRIMARY KEY (rate_key, window_start)
-      );
-    `).then(() => undefined).catch((error) => {
+    schemaInitializationPromise = (async () => {
+      for (const statement of VOUCHER_SCHEMA_STATEMENTS) {
+        await database.prepare(statement).run()
+      }
+    })().catch((error) => {
       schemaInitializationPromise = null
       throw error
     })
@@ -242,34 +244,4 @@ export async function markVoucherAsClaimed(
     `)
     .bind(now, now, address)
     .run()
-}
-
-export async function incrementRateLimit(
-  event: H3Event,
-  rateKey: string,
-  windowStart: number,
-  expiresAt: number,
-): Promise<number> {
-  const database = requireVoucherDatabase(event)
-
-  await database
-    .prepare(`
-      INSERT INTO request_rate_limits (rate_key, window_start, attempts, expires_at)
-      VALUES (?, ?, 1, ?)
-      ON CONFLICT(rate_key, window_start)
-      DO UPDATE SET attempts = attempts + 1, expires_at = excluded.expires_at
-    `)
-    .bind(rateKey, windowStart, expiresAt)
-    .run()
-
-  const row = await database
-    .prepare(`
-      SELECT attempts
-      FROM request_rate_limits
-      WHERE rate_key = ? AND window_start = ?
-    `)
-    .bind(rateKey, windowStart)
-    .first<{ attempts: number }>()
-
-  return row?.attempts ?? 0
 }

@@ -5,6 +5,8 @@
   "scripts": {
     "build": "nuxt build",
     "build-cf-pages": "nuxt build --preset=cloudflare_pages",
+    "cf:dev": "XDG_CONFIG_HOME=.wrangler/config wrangler pages dev dist --ip 127.0.0.1 --persist-to .wrangler/state",
+    "cf:setup-local": "bash ./scripts/setup-local-cf.sh",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "generate-cf-pages": "nuxt generate --preset=cloudflare_pages",
@@ -56,6 +58,7 @@
     "eslint-config-prettier": "^10.1.8",
     "prettier-plugin-tailwindcss": "^0.7.1",
     "typescript": "^5.9.3",
-    "vite-plugin-eslint2": "^5.0.4"
+    "vite-plugin-eslint2": "^5.0.4",
+    "wrangler": "^4.81.0"
   }
 }

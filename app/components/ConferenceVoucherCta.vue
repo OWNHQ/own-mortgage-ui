@@ -5,7 +5,7 @@
     class="px-3 text-xs sm:text-sm"
   >
     <NuxtLink to="/conference-voucher">
-      <span class="hidden sm:inline">Claim Conference Voucher</span>
+      <span class="hidden sm:inline">Claim ETHPrague Voucher</span>
       <span class="sm:hidden">Voucher</span>
     </NuxtLink>
   </Button>

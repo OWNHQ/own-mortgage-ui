@@ -27,6 +27,9 @@ Instructions for coding agents working in this repository.
 - Install dependencies: `bun install`
 - Start dev server: `bun run dev`
 - Preview production build locally: `bun run preview`
+- Cloudflare Pages server build: `bun run build-cf-pages`
+- Local Cloudflare D1 setup: `bun run cf:setup-local`
+- Local Cloudflare Pages runtime: `bun run cf:dev`
 - Static generate: `bun run generate`
 - Cloudflare Pages static preset: `bun run generate-cf-pages`
 - Lint: `bun run lint`
@@ -36,7 +39,9 @@ Notes:
 
 - The Nuxt dev server runs on port `8000`.
 - ESLint imports `.nuxt/eslint.config.mjs`, so if `.nuxt` is missing run `bun install` or `bun run postinstall` before linting.
-- `README.md` currently mentions `build-cf-pages`, but `package.json` exposes `generate-cf-pages`. Verify deployment intent before editing deployment docs or scripts.
+- `build-cf-pages` is the correct command for the voucher-enabled Cloudflare deployment because it includes Nitro server routes.
+- `generate-cf-pages` is static-only and should not be used for voucher-enabled testing or deployment.
+- `cf:dev` uses Wrangler with local persistence under `.wrangler/state`, so local D1 data survives restarts until that directory is deleted.
 
 ## Repo Map
 
@@ -51,8 +56,10 @@ Notes:
 - `app/lib`: shared client utilities
 - `app/plugins`: Nuxt plugins for Vue Query, Wagmi, toastification, Clarity
 - `server/api/voucher`: conference voucher API endpoints
-- `server/utils/voucher`: D1 access, SIWE auth, cookies, security, rate limiting
+- `server/utils/voucher`: D1 access, SIWE auth, cookies, security, and request helpers
 - `database`: D1 schema and seed example files
+- `scripts/setup-local-cf.sh`: local Cloudflare D1 bootstrap script
+- `wrangler.jsonc`: local Cloudflare Pages and D1 configuration
 - `public`: fonts, icons, images, and static assets
 
 ## Code Conventions
@@ -76,7 +83,8 @@ Notes:
 
 - The conference voucher flow uses server routes plus D1-backed storage.
 - Keep storage availability checks in place. `DB` is the expected Cloudflare D1 binding name.
-- Keep SIWE verification, session handling, and rate limiting intact when changing the voucher flow.
+- Keep SIWE verification and session handling intact when changing the voucher flow.
+- Prefer H3 request helpers such as `getRequestHost`, `getRequestProtocol`, and `getRequestIP` over manual header access in server utilities.
 - Prefer explicit `createError(...)` responses with correct HTTP status codes in server handlers.
 - Do not commit real wallet allowlists, voucher codes, or private seed data. Use `database/conference-voucher.seed.example.sql` as the public example only.
 

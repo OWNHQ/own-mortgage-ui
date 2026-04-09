@@ -6,7 +6,6 @@ import {
   isVoucherStorageConfigured,
   markVoucherAsClaimed,
 } from "../../utils/voucher/db"
-import { enforceVoucherRateLimit } from "../../utils/voucher/security"
 
 export default defineEventHandler(async (event) => {
   await ensureVoucherSchema(event)
@@ -14,18 +13,17 @@ export default defineEventHandler(async (event) => {
   if (!isVoucherStorageConfigured(event)) {
     throw createError({
       statusCode: 503,
-      statusMessage: "Conference voucher storage is not configured.",
+      statusMessage: "ETHPrague voucher storage is not configured.",
     })
   }
 
   const session = await requireVoucherSession(event)
-  await enforceVoucherRateLimit(event, "claim", session.address)
 
   const voucherRecord = await getEligibleWalletByAddress(event, session.address)
   if (!voucherRecord) {
     throw createError({
       statusCode: 403,
-      statusMessage: "This wallet is not eligible for a conference voucher.",
+      statusMessage: "This wallet is not eligible for an ETHPrague voucher.",
     })
   }
 

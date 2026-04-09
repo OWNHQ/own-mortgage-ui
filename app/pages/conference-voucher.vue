@@ -2,15 +2,15 @@
   <div class="max-w-3xl mx-auto py-6">
     <div class="bg-card border rounded-xl p-5 sm:p-6 shadow-lg">
       <div class="mb-5">
-        <p class="text-xs uppercase tracking-[0.3em] text-bordel-green mb-2">Conference Reward</p>
-        <h1 class="font-heading text-2xl sm:text-3xl mb-2">Conference Voucher Claim</h1>
+        <p class="text-xs uppercase tracking-[0.3em] text-bordel-green mb-2">ETHPrague Reward</p>
+        <h1 class="font-heading text-2xl sm:text-3xl mb-2">ETHPrague Voucher Claim</h1>
         <p class="text-sm sm:text-base text-gray-300">
           Connect the lending wallet, verify ownership by signing a standard SIWE message, and reveal the voucher code assigned to that address.
         </p>
       </div>
 
       <div v-if="!isConnected" class="border rounded-lg p-4 bg-background/40">
-        <p class="text-sm text-gray-300 mb-4">Connect the wallet that funded the loan to check conference voucher eligibility.</p>
+        <p class="text-sm text-gray-300 mb-4">Connect the wallet that funded the loan to check ETHPrague voucher eligibility.</p>
         <Button @click="open({ view: 'Connect' })">
           Connect Wallet
         </Button>
@@ -25,7 +25,7 @@
         </div>
 
         <div v-if="eligibilityQuery.isLoading.value" class="border rounded-lg p-4 bg-background/40 text-sm text-gray-300">
-          Checking conference voucher eligibility...
+          Checking ETHPrague voucher eligibility...
         </div>
 
         <div v-else-if="eligibilityErrorMessage" class="border rounded-lg p-4 bg-red-900/20 border-red-500/40 text-sm text-red-200">
@@ -33,18 +33,18 @@
         </div>
 
         <div v-else-if="!isVoucherConfigured" class="border rounded-lg p-4 bg-yellow-900/20 border-yellow-500/40 text-sm text-yellow-100">
-          Conference voucher claiming is not configured on this deployment yet.
+          ETHPrague voucher claiming is not configured on this deployment yet.
         </div>
 
         <div v-else-if="!isEligible" class="border rounded-lg p-4 bg-background/40 text-sm text-gray-300">
-          This connected wallet is not currently eligible for a conference voucher.
+          This connected wallet is not currently eligible for an ETHPrague voucher.
         </div>
 
         <div v-else class="space-y-4">
           <div class="border rounded-lg p-4 bg-green-900/15 border-green-500/30">
             <p class="text-sm text-green-100 font-medium mb-1">Eligible wallet detected</p>
             <p class="text-sm text-green-50/90">
-              This address is on the conference voucher allowlist. Verify wallet ownership to unlock the code assigned to it.
+              This address is on the ETHPrague voucher allowlist. Verify wallet ownership to unlock the code assigned to it.
             </p>
           </div>
 
@@ -227,7 +227,7 @@ const eligibilityErrorMessage = computed(() => {
     return null
   }
 
-  return extractErrorMessage(eligibilityQuery.error.value as Error) ?? "Could not check conference voucher eligibility."
+  return extractErrorMessage(eligibilityQuery.error.value as Error) ?? "Could not check ETHPrague voucher eligibility."
 })
 
 const statusErrorMessage = computed(() => {
