@@ -10,8 +10,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "replace-with-your-d1-database-name",
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_name": "bordel-ethprague-vouchers-test",
+      "database_id": "c94b9b87-d544-4551-9bfc-03c4e9bda434"
     }
   ]
 }
