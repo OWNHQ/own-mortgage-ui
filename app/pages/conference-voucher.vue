@@ -9,6 +9,20 @@
         </p>
       </div>
 
+      <div class="mb-5 border rounded-lg p-4 bg-background/40">
+        <p class="text-sm text-gray-300">
+          After revealing your voucher code, apply it at
+          <a
+            href="https://tix.ducttape.events/dt/ethprague2026/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ml-1 text-bordel-green underline underline-offset-4 transition-colors hover:text-white break-all"
+          >
+            tix.ducttape.events/dt/ethprague2026/
+          </a>
+        </p>
+      </div>
+
       <div v-if="!isConnected" class="border rounded-lg p-4 bg-background/40">
         <p class="text-sm text-gray-300 mb-4">Connect the wallet that funded the loan to check ETHPrague voucher eligibility.</p>
         <Button @click="open({ view: 'Connect' })">
