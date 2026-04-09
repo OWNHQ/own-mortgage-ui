@@ -1,6 +1,6 @@
 <template>
   <div>
-      <div class="relative text-center pt-3 sm:pt-2 pb-4 md:pb-6">
+      <div class="relative text-center pt-3 sm:pt-4 pb-4 md:pb-6">
           <h1 class="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-beon">
               FUNDING A <span class="text-bordel-green">HACKERSPACE</span>
           </h1>

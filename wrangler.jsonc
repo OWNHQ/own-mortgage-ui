@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "own-mortgage-ui",
+  "pages_build_output_dir": "dist",
+  "compatibility_date": "2026-04-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bordel-ethprague-vouchers-test",
+      "database_id": "c94b9b87-d544-4551-9bfc-03c4e9bda434"
+    }
+  ]
+}
