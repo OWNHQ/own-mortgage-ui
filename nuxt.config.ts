@@ -9,6 +9,7 @@ Decimal.config({ toExpNeg: -9000000000000000 })
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
+  // Pages stay client-rendered; voucher API routes are still included by the Cloudflare Pages Nitro build.
   ssr: false,
   css: ["~/assets/css/tailwind.css"],
   app: {

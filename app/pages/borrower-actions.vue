@@ -1,7 +1,6 @@
 <template>
     <div class="flex gap-4 mt-5">
-        <!-- TODO only display if not running yet -->
-        <div class="border p-4 flex flex-col gap-4">
+        <div v-if="!isLoanActive" class="border p-4 flex flex-col gap-4">
             <h2 class="text-xl font-bold">Accept Proposal</h2>
             <label>
                 Credit Amount You Want to Borrow: 
@@ -54,6 +53,7 @@ const { isConnected, address: userAddress } = useAccount()
 const { approveForAcceptIfNeeded, acceptProposal, getCollateralAmountFromCreditAmount, approveForRepayIfNeeded, repay, getRemainingDebt, getLoanId, getNextPaymentDeadline } = useBorrow()
 const { open } = useAppKit();
 const { totalDepositedAssetsFormatted } = useProposal()
+const { isLoanActive } = useLoanStatus()
 
 const toast = ref<Toast>()
 let continueFlow: () => Promise<void> | undefined
@@ -148,6 +148,10 @@ const { isPending: isRepaying, mutateAsync: repayMutateAsync } = useMutation({
 })
 
 const handleAcceptProposalClick = async () => {
+    if (isLoanActive.value) {
+        return
+    }
+
     if (!isConnected.value) {
         open({ view: 'Connect' })
         return
