@@ -9,7 +9,6 @@
     "cf:setup-local": "bash ./scripts/setup-local-cf.sh",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "generate-cf-pages": "nuxt generate --preset=cloudflare_pages",
     "preview": "nuxt build && nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",

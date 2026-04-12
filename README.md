@@ -43,7 +43,7 @@ Recommended Cloudflare Pages build command:
 bun run build-cf-pages
 ```
 
-`bun run generate-cf-pages` still exists for static exports, but it does not include the secure voucher API routes and should not be used for the voucher-enabled deployment.
+Static generation is not used for Cloudflare Pages because the voucher flow depends on server routes.
 
 Cloudflare bindings required for the voucher feature:
 

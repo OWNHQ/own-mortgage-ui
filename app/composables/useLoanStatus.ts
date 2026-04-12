@@ -6,6 +6,7 @@ import PWN_LOAN_ABI from '~/assets/abis/v1.5/PWNLoan'
 import { PWN_INSTALLMENTS_PRODUCT_ABI } from '~/assets/abis/v1.5/PWNInstallmentsProduct'
 import { CREDIT_DECIMALS, COLLATERAL_DECIMALS, TOTAL_AMOUNT_TO_REPAY } from '~/constants/proposalConstants'
 import Decimal from 'decimal.js'
+import { calculateNextPaymentDeadline } from '~/lib/loan-deadline'
 
 export default function useLoanStatus() {
     // Read loanId from vault
@@ -35,6 +36,21 @@ export default function useLoanStatus() {
         if (!remainingDebt.value) return '0'
         return Math.floor(Number(formatUnits(remainingDebt.value, CREDIT_DECIMALS))).toLocaleString()
     })
+
+    const loanDetailsQuery = useReadContract({
+        abi: PWN_LOAN_ABI,
+        address: PWN_LOAN_ADDRESS,
+        functionName: 'getLOAN',
+        args: computed(() => [loanId.value] as const),
+        query: {
+            enabled: isLoanActive,
+        },
+    })
+
+    const loanDetails = computed(() => loanDetailsQuery.data.value)
+    const loanLastUpdateTimestamp = computed<bigint>(() => BigInt(loanDetails.value?.lastUpdateTimestamp ?? 0n))
+    const loanPrincipal = computed<bigint>(() => BigInt(loanDetails.value?.principal ?? 0n))
+    const loanPastAccruedInterest = computed<bigint>(() => BigInt(loanDetails.value?.pastAccruedInterest ?? 0n))
 
     // Total amount to repay (principal + interest) from constants
     const totalOwed = computed<bigint>(() => {
@@ -89,8 +105,19 @@ export default function useLoanStatus() {
     })
 
     const loanData = computed(() => loanDataQuery.data.value)
+    const apr = computed<bigint>(() => loanData.value ? BigInt(loanData.value[0]) : 0n)
     const defaultTimestamp = computed<bigint>(() => loanData.value ? BigInt(loanData.value[1]) : 0n)
     const debtLimitTangent = computed<bigint>(() => loanData.value ? BigInt(loanData.value[2]) : 0n)
+
+    const aprDecimalsQuery = useReadContract({
+        abi: PWN_INSTALLMENTS_PRODUCT_ABI,
+        address: PWN_INSTALLMENTS_PRODUCT_ADDRESS,
+        functionName: 'APR_DECIMALS',
+    })
+
+    const aprDecimals = computed<bigint>(() =>
+        aprDecimalsQuery.data.value ? BigInt(aprDecimalsQuery.data.value) : 0n
+    )
 
     // Read DEBT_LIMIT_TANGENT_DECIMALS
     const debtLimitTangentDecimalsQuery = useReadContract({
@@ -131,20 +158,21 @@ export default function useLoanStatus() {
         return 'active'
     })
 
-    // Next payment deadline calculation
-    // Formula: timestamp = defaultTimestamp - (currentDebt * 10^DEBT_LIMIT_TANGENT_DECIMALS) / debtLimitTangent
     const nextPaymentDeadline = computed<bigint | null>(() => {
-        if (!isLoanActive.value || remainingDebt.value === 0n) return null
-        if (defaultTimestamp.value === 0n || debtLimitTangent.value === 0n || debtLimitTangentDecimals.value === 0n) return null
+        if (!isLoanActive.value || remainingDebt.value === 0n || !loanDetails.value) return null
+        if (aprDecimals.value === 0n || debtLimitTangentDecimals.value === 0n) return null
 
-        const currentTimestamp = BigInt(Math.floor(Date.now() / 1000))
-        if (currentTimestamp >= defaultTimestamp.value) return null
-
-        const decimalsMultiplier = 10n ** debtLimitTangentDecimals.value
-        const numerator = remainingDebt.value * decimalsMultiplier
-        const deadlineTimestamp = defaultTimestamp.value - (numerator / debtLimitTangent.value)
-
-        return deadlineTimestamp
+        return calculateNextPaymentDeadline({
+            principal: loanPrincipal.value,
+            pastAccruedInterest: loanPastAccruedInterest.value,
+            lastUpdateTimestamp: loanLastUpdateTimestamp.value,
+            apr: apr.value,
+            aprDecimals: aprDecimals.value,
+            defaultTimestamp: defaultTimestamp.value,
+            debtLimitTangent: debtLimitTangent.value,
+            debtLimitTangentDecimals: debtLimitTangentDecimals.value,
+            currentTimestamp: BigInt(Math.floor(Date.now() / 1000)),
+        })
     })
 
     // Vault total assets (USDC available)
@@ -191,6 +219,7 @@ export default function useLoanStatus() {
         await Promise.allSettled([
             loanIdQuery.refetch(),
             remainingDebtQuery.refetch(),
+            loanDetailsQuery.refetch(),
             loanDataQuery.refetch(),
             isDefaultedQuery.refetch(),
             totalVaultAssetsQuery.refetch(),

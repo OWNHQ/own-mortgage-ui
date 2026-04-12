@@ -31,7 +31,6 @@ Instructions for coding agents working in this repository.
 - Local Cloudflare D1 setup: `bun run cf:setup-local`
 - Local Cloudflare Pages runtime: `bun run cf:dev`
 - Static generate: `bun run generate`
-- Cloudflare Pages static preset: `bun run generate-cf-pages`
 - Lint: `bun run lint`
 - Auto-fix lint: `bun run lint:fix`
 
@@ -40,7 +39,6 @@ Notes:
 - The Nuxt dev server runs on port `8000`.
 - ESLint imports `.nuxt/eslint.config.mjs`, so if `.nuxt` is missing run `bun install` or `bun run postinstall` before linting.
 - `build-cf-pages` is the correct command for the voucher-enabled Cloudflare deployment because it includes Nitro server routes.
-- `generate-cf-pages` is static-only and should not be used for voucher-enabled testing or deployment.
 - `cf:dev` uses Wrangler with local persistence under `.wrangler/state`, so local D1 data survives restarts until that directory is deleted.
 
 ## Repo Map
