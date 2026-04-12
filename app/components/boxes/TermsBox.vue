@@ -54,9 +54,6 @@
                         This is purely handled by smart contract functions that validate whether sufficient repayments were made at particular points in time following the liquidation threshold with no reliance on price oracles.
                     </p>
                     <LoanDefaultGraph />
-                    <p class="leading-relaxed text-xs sm:text-sm mt-4 text-justify text-gray-400 italic">
-                        Important: The loan mechanics do not purposefully include price-based liquidation. The decision to fund the loan should be made with the expectation that in 5 years the value of weETH will not be 25% lower than it is today.
-                    </p>
                 </AccordionContent>
             </AccordionItem>
             
