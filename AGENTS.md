@@ -9,12 +9,6 @@ Instructions for coding agents working in this repository.
 - The stack includes Bun, Tailwind CSS v4, shadcn-nuxt/Reka UI, Pinia, Vue Query, Wagmi, viem, and Reown AppKit.
 - Production voucher support depends on server routes and Cloudflare D1 storage.
 
-## Research And Docs
-
-- Use Context7 MCP whenever the task involves a library, framework, SDK, API, CLI tool, or cloud service.
-- Resolve the library ID first, then query docs with the full task/question.
-- Prefer Context7 over memory for Nuxt, Vue, Wagmi, viem, Tailwind, shadcn-vue, Cloudflare, SIWE, and related tooling.
-
 ## Working Rules
 
 - Read the relevant files before editing. This repo has active in-progress work; do not overwrite unrelated user changes.
