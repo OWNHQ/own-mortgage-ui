@@ -1,12 +1,16 @@
 import { useReadContract } from '@wagmi/vue'
+import { getPublicClient } from '@wagmi/core/actions'
+import { useQuery } from '@tanstack/vue-query'
 import { formatUnits } from 'viem'
 import { PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS, PWN_LOAN_ADDRESS, PWN_INSTALLMENTS_PRODUCT_ADDRESS } from '~/constants/addresses'
 import PWN_CROWDSOURCE_LENDER_VAULT_ABI from '~/assets/abis/v1.5/PWNCrowdsourceLenderVault'
 import PWN_LOAN_ABI from '~/assets/abis/v1.5/PWNLoan'
 import { PWN_INSTALLMENTS_PRODUCT_ABI } from '~/assets/abis/v1.5/PWNInstallmentsProduct'
-import { CREDIT_DECIMALS, COLLATERAL_DECIMALS, TOTAL_AMOUNT_TO_REPAY } from '~/constants/proposalConstants'
+import { CREDIT_DECIMALS, COLLATERAL_DECIMALS, LOAN_CREATED_BLOCK, PROPOSAL_CHAIN_ID, TOTAL_AMOUNT_TO_REPAY } from '~/constants/proposalConstants'
 import Decimal from 'decimal.js'
 import { calculateNextPaymentDeadline } from '~/lib/loan-deadline'
+import { wagmiConfig } from '~/config/appkit'
+import { getTotalLoanRepayments } from '~/lib/loan-repayments'
 
 export default function useLoanStatus() {
     // Read loanId from vault
@@ -65,18 +69,26 @@ export default function useLoanStatus() {
         return Math.floor(Number(formatUnits(totalOwed.value, CREDIT_DECIMALS))).toLocaleString()
     })
 
-    // Whether remaining debt query has loaded
-    const hasRemainingDebtLoaded = computed(() => remainingDebtQuery.data.value !== undefined)
+    const repaymentsQuery = useQuery({
+        enabled: isLoanActive,
+        queryKey: computed(() => [
+            'loan-repayments',
+            PROPOSAL_CHAIN_ID,
+            PWN_LOAN_ADDRESS,
+            loanId.value.toString(),
+        ]),
+        queryFn: async () => {
+            const publicClient = getPublicClient(wagmiConfig, { chainId: PROPOSAL_CHAIN_ID })
+            if (!publicClient) throw new Error('Public client is not available for repayment events.')
 
-    // Hardcoded principal: 180,295 USDC (6 decimals)
-    const principal = 180_295_000_000n
-
-    // Total repaid = principal - remainingDebt (remaining debt accrues interest, so repaid only shows actual repayments)
-    const totalAmountRepaid = computed<bigint>(() => {
-        if (!isLoanActive.value || !hasRemainingDebtLoaded.value) return 0n
-        const repaid = principal - remainingDebt.value
-        return repaid > 0n ? repaid : 0n
+            return await getTotalLoanRepayments(publicClient, loanId.value, LOAN_CREATED_BLOCK)
+        },
+        staleTime: 30_000,
+        refetchOnWindowFocus: true,
     })
+
+    // Gross repayment amount, including both repaid interest and principal.
+    const totalAmountRepaid = computed<bigint>(() => repaymentsQuery.data.value ?? 0n)
 
     const totalAmountRepaidFormatted = computed<string>(() => {
         if (!totalAmountRepaid.value) return '0'
@@ -224,6 +236,7 @@ export default function useLoanStatus() {
             isDefaultedQuery.refetch(),
             totalVaultAssetsQuery.refetch(),
             totalCollateralAssetsQuery.refetch(),
+            repaymentsQuery.refetch(),
         ])
     }
 

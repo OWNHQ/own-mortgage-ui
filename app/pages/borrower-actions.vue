@@ -53,7 +53,7 @@ const { isConnected, address: userAddress } = useAccount()
 const { approveForAcceptIfNeeded, acceptProposal, getCollateralAmountFromCreditAmount, approveForRepayIfNeeded, repay, getRemainingDebt, getLoanId, getNextPaymentDeadline } = useBorrow()
 const { open } = useAppKit();
 const { totalDepositedAssetsFormatted } = useProposal()
-const { isLoanActive } = useLoanStatus()
+const { isLoanActive, refetchLoanData } = useLoanStatus()
 
 const toast = ref<Toast>()
 let continueFlow: () => Promise<void> | undefined
@@ -143,6 +143,7 @@ const { isPending: isRepaying, mutateAsync: repayMutateAsync } = useMutation({
     mutationKey: [MutationIds.Repay],
     mutationFn: async ({ step }: { step: ToastStep }) => {
         await repay(step, repaymentAmountBigInt.value)
+        await refetchLoanData()
     },
     throwOnError: true,
 })
