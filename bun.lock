@@ -26,7 +26,7 @@
         "decimal.js": "^10.6.0",
         "eslint": "^9.39.1",
         "lucide-vue-next": "^0.553.0",
-        "nuxt": "^4.2.1",
+        "nuxt": "4.2.1",
         "nuxt-typed-router": "^4.0.2",
         "pinia": "^3.0.4",
         "prettier": "3.6.2",
