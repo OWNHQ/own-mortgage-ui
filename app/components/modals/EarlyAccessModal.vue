@@ -1,55 +1,62 @@
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogTrigger v-if="props.displayOpenButton" as-child>
-      <Button variant="default" class="font-semibold">
-        Get your OWN mortgage!
-      </Button>
-    </DialogTrigger>
-    <DialogContent class="max-w-2xl max-h-[90vh] overflow-y-auto">
-      <DialogHeader>
-        <DialogTitle class="mb-6">Early Access Registration</DialogTitle>
+    <span v-if="displayOpenButton" class="footer-dialog-cta">
+      <DialogTrigger as-child>
+        <button
+          type="button"
+          class="footer-dialog-trigger"
+          aria-describedby="owngage-definition"
+        >
+          Get your own Owngage <span aria-hidden="true">↗</span>
+        </button>
+      </DialogTrigger>
+      <span id="owngage-definition" class="footer-dialog-tooltip" role="tooltip">
+        Owngage: a long-term, fixed-rate installment DeFi loan.
+      </span>
+    </span>
+
+    <DialogContent>
+      <DialogHeader class="dialog-intro">
+        <p class="dialog-eyebrow"><span /> BORROWER</p>
+        <DialogTitle>Start a mortgage conversation.</DialogTitle>
         <DialogDescription>
-          <div class="flex flex-col max-w-full">
-            <p class="text-base text-white mb-4">
-              Interested in getting a DeFi mortgage for your project? <br />
-              Fill out the form and we'll reach out to discuss how to do this!
-            </p>
-          </div>
+          Tell us how to reach you and what you want to finance. We will follow up with the relevant next step.
         </DialogDescription>
       </DialogHeader>
 
-      <form class="space-y-4" @submit.prevent="handleSubmit">
-        <div class="space-y-2">
-          <label for="commsChannel" class="text-base font-medium mb-3 block text-white">Preferred communication channel:</label>
-          <input 
-            id="commsChannel" 
+      <form class="early-access-form" @submit.prevent="handleSubmit">
+        <label>
+          <span>PREFERRED COMMUNICATION CHANNEL</span>
+          <input
             v-model="formData.commsChannel"
-            type="text" 
-            required 
-            placeholder="Email, Telegram, Signal, etc."
-            class="w-full px-3 py-2 border rounded-md bg-background"
+            type="text"
+            required
+            autocomplete="off"
+            placeholder="Email, Telegram, Signal…"
           >
-        </div>
+        </label>
 
-        <div class="space-y-2">
-          <label for="projectDescription" class="text-base font-medium mb-3 block text-white">
-            Describe the project you'd like to get mortgage financing for:
-          </label>
-          <textarea 
-            id="projectDescription" 
+        <label>
+          <span>PROJECT DESCRIPTION</span>
+          <textarea
             v-model="formData.projectDescription"
             required
-            rows="6"
-            placeholder="Tell us about your project..."
-            class="w-full px-3 py-2 border rounded-md bg-background resize-y"
+            rows="5"
+            placeholder="Property, project, financing need, and timing."
           ></textarea>
-        </div>
+        </label>
 
-        <Button type="submit" class="w-full" :disabled="isSubmitting">
-          {{ isSubmitting ? 'Submitting...' : 'Submit Application' }}
+        <Button type="submit" class="dialog-primary" :disabled="isSubmitting">
+          <span>{{ isSubmitting ? 'SUBMITTING…' : 'SUBMIT APPLICATION' }}</span>
+          <span aria-hidden="true">→</span>
         </Button>
 
-        <p v-if="submitMessage" class="text-sm text-center" :class="submitSuccess ? 'text-green-400' : 'text-red-400'">
+        <p
+          v-if="submitMessage"
+          class="submission-message"
+          :class="submitSuccess ? 'is-success' : 'is-error'"
+          role="status"
+        >
           {{ submitMessage }}
         </p>
       </form>
@@ -58,32 +65,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
 interface Props {
-    displayOpenButton?: boolean
+  displayOpenButton?: boolean
 }
-const props = withDefaults(defineProps<Props>(), {
-    displayOpenButton: true
+
+withDefaults(defineProps<Props>(), {
+  displayOpenButton: true,
 })
 
 const isOpen = ref(false)
 const isSubmitting = ref(false)
 const submitMessage = ref('')
 const submitSuccess = ref(false)
-
 const formData = ref({
   commsChannel: '',
-  projectDescription: ''
+  projectDescription: '',
 })
 
-// Replace this URL with your Google Apps Script web app URL
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw03rLMfrOQSbX2MkRrpFHxTHM6qWjOkgTUZON7qv9qii-coSHXHmDW-vKu5NxZzgPVpA/exec'
 
-const handleSubmit = async () => {
+async function handleSubmit() {
   isSubmitting.value = true
   submitMessage.value = ''
-  
+
   try {
     await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
@@ -94,38 +98,172 @@ const handleSubmit = async () => {
       body: JSON.stringify({
         commsChannel: formData.value.commsChannel,
         projectDescription: formData.value.projectDescription,
-        timestamp: new Date().toISOString()
-      })
+        timestamp: new Date().toISOString(),
+      }),
     })
-    
-    // With no-cors mode, we can't read the response, so assume success
-    submitMessage.value = 'Application submitted successfully!'
+
+    submitMessage.value = 'Application sent. We will follow up shortly.'
     submitSuccess.value = true
-    
-    // Reset form
     formData.value.commsChannel = ''
     formData.value.projectDescription = ''
-    
-    // Close modal after 2 seconds
+
     setTimeout(() => {
       isOpen.value = false
       submitMessage.value = ''
-    }, 2000)
-  } catch (error) {
+    }, 2_000)
+  }
+  catch (error) {
     console.error('Submission error:', error)
-    submitMessage.value = 'Failed to submit. Please try again.'
+    submitMessage.value = 'Submission failed. Please try again.'
     submitSuccess.value = false
-  } finally {
+  }
+  finally {
     isSubmitting.value = false
   }
 }
 
-// Expose method to open modal programmatically
-const openModal = () => {
-    isOpen.value = true
+function openModal() {
+  isOpen.value = true
 }
 
-defineExpose({
-    openModal
-})
+defineExpose({ openModal })
 </script>
+
+<style scoped>
+.footer-dialog-cta {
+  position: relative;
+  display: inline-flex;
+}
+
+.footer-dialog-trigger {
+  min-height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--teal-dark);
+  cursor: pointer;
+  font: 700 10px/14px var(--font-mono);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-dialog-trigger:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.footer-dialog-tooltip {
+  position: absolute;
+  z-index: 10;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: 8px 10px;
+  border: 1px solid var(--ink);
+  border-radius: 7px;
+  background: var(--paper);
+  box-shadow: 0 8px 24px rgb(23 26 25 / 14%);
+  color: var(--ink);
+  font: 600 10px/15px var(--font-mono);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    visibility 120ms ease;
+  visibility: hidden;
+}
+
+.footer-dialog-cta:hover .footer-dialog-tooltip,
+.footer-dialog-cta:focus-within .footer-dialog-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.dialog-intro {
+  display: grid;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.dialog-eyebrow,
+.early-access-form label > span {
+  font: 700 10px/14px var(--font-mono);
+  letter-spacing: .08em;
+}
+
+.dialog-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  color: var(--teal-dark);
+}
+
+.dialog-eyebrow span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--teal-bright);
+}
+
+.early-access-form {
+  display: grid;
+  gap: 18px;
+}
+
+.early-access-form label {
+  display: grid;
+  gap: 9px;
+}
+
+.early-access-form input,
+.early-access-form textarea {
+  width: 100%;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper-deep);
+  color: var(--ink);
+  outline: none;
+}
+
+.early-access-form input {
+  height: 56px;
+  padding-inline: 16px;
+}
+
+.early-access-form textarea {
+  min-height: 144px;
+  padding: 14px 16px;
+  resize: vertical;
+}
+
+.early-access-form input:focus-visible,
+.early-access-form textarea:focus-visible {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--teal) 20%, transparent);
+}
+
+.dialog-primary {
+  min-height: 56px;
+  justify-content: space-between;
+  padding-inline: 18px;
+  font-size: 13px;
+}
+
+.submission-message {
+  margin: 0;
+  font: 600 12px/18px var(--font-mono);
+}
+
+.submission-message.is-success {
+  color: var(--teal-dark);
+}
+
+.submission-message.is-error {
+  color: var(--danger-ink);
+}
+</style>

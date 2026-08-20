@@ -17,7 +17,10 @@ export default function useBorrow() {
 
     const { address: userAddress, chainId: connectedChainId } = useAccount()
 
-    const getCollateralAmountFromCreditAmount = async (creditAmount: bigint) => {
+    const getCollateralAmountFromCreditAmount = async (
+        creditAmount: bigint,
+        loanToValue: bigint = proposal.loanToValue,
+    ) => {
         return await readContract(wagmiConfig, {
             abi: PWN_INSTALLMENTS_PRODUCT_ABI,
             functionName: 'getCollateralAmount',
@@ -29,7 +32,7 @@ export default function useBorrow() {
                 COLLATERAL_ADDRESS,
                 proposal.feedIntermediaryDenominations,
                 proposal.feedInvertFlags,
-                proposal.loanToValue
+                loanToValue
             ],
         })
     }

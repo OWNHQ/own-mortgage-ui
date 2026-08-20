@@ -1,32 +1,49 @@
 import { useReadContract } from '@wagmi/vue'
-import { formatUnits } from 'viem'
+import { formatUnits, parseUnits } from 'viem'
 import { PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS, PWN_LOAN_ADDRESS, PWN_INSTALLMENTS_PRODUCT_ADDRESS } from '~/constants/addresses'
 import PWN_CROWDSOURCE_LENDER_VAULT_ABI from '~/assets/abis/v1.5/PWNCrowdsourceLenderVault'
 import PWN_LOAN_ABI from '~/assets/abis/v1.5/PWNLoan'
 import { PWN_INSTALLMENTS_PRODUCT_ABI } from '~/assets/abis/v1.5/PWNInstallmentsProduct'
-import { CREDIT_DECIMALS, COLLATERAL_DECIMALS, TOTAL_AMOUNT_TO_REPAY } from '~/constants/proposalConstants'
+import { CREDIT_DECIMALS, COLLATERAL_DECIMALS, PROPOSAL_CHAIN_ID } from '~/constants/proposalConstants'
 import Decimal from 'decimal.js'
 import { calculateNextPaymentDeadline } from '~/lib/loan-deadline'
+import { calculateAmortizedRepaymentPlan, REPAYMENT_MONTH_IN_SECONDS } from '~/lib/repayment-model'
+import useRepaymentHistory from '~/composables/useRepaymentHistory'
 
 export default function useLoanStatus() {
     // Read loanId from vault
     const loanIdQuery = useReadContract({
         abi: PWN_CROWDSOURCE_LENDER_VAULT_ABI,
         address: PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'loanId',
     })
 
     const loanId = computed<bigint>(() => loanIdQuery.data.value ?? 0n)
     const isLoanActive = computed<boolean>(() => loanId.value > 0n)
 
+    const {
+        error: loanEventsError,
+        events: repaymentEvents,
+        isLoading: areLoanEventsLoading,
+        loanStartTimestamp,
+        originalPrincipal,
+        refresh: refetchLoanEvents,
+    } = useRepaymentHistory({
+        enabled: isLoanActive,
+        loanId,
+    })
+
     // Read remaining debt from PWNLoan
     const remainingDebtQuery = useReadContract({
         abi: PWN_LOAN_ABI,
         address: PWN_LOAN_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'getLOANDebt',
         args: computed(() => [loanId.value] as const),
         query: {
             enabled: isLoanActive,
+            refetchInterval: 30_000,
         },
     })
 
@@ -40,63 +57,26 @@ export default function useLoanStatus() {
     const loanDetailsQuery = useReadContract({
         abi: PWN_LOAN_ABI,
         address: PWN_LOAN_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'getLOAN',
         args: computed(() => [loanId.value] as const),
         query: {
             enabled: isLoanActive,
+            refetchInterval: 30_000,
         },
     })
 
     const loanDetails = computed(() => loanDetailsQuery.data.value)
     const loanLastUpdateTimestamp = computed<bigint>(() => BigInt(loanDetails.value?.lastUpdateTimestamp ?? 0n))
     const loanPrincipal = computed<bigint>(() => BigInt(loanDetails.value?.principal ?? 0n))
+    const loanCollateralAmount = computed<bigint>(() => BigInt(loanDetails.value?.collateral.amount ?? 0n))
     const loanPastAccruedInterest = computed<bigint>(() => BigInt(loanDetails.value?.pastAccruedInterest ?? 0n))
-
-    // Total amount to repay (principal + interest) from constants
-    const totalOwed = computed<bigint>(() => {
-        // TOTAL_AMOUNT_TO_REPAY is a Decimal, convert to bigint with CREDIT_DECIMALS
-        const totalStr = TOTAL_AMOUNT_TO_REPAY.toFixed(CREDIT_DECIMALS)
-        const [intPart, decPart = ''] = totalStr.split('.')
-        const padded = decPart.padEnd(CREDIT_DECIMALS, '0').slice(0, CREDIT_DECIMALS)
-        return BigInt(intPart + padded)
-    })
-
-    const totalOwedFormatted = computed<string>(() => {
-        return Math.floor(Number(formatUnits(totalOwed.value, CREDIT_DECIMALS))).toLocaleString()
-    })
-
-    // Whether remaining debt query has loaded
-    const hasRemainingDebtLoaded = computed(() => remainingDebtQuery.data.value !== undefined)
-
-    // Hardcoded principal: 180,295 USDC (6 decimals)
-    const principal = 180_295_000_000n
-
-    // Total repaid = principal - remainingDebt (remaining debt accrues interest, so repaid only shows actual repayments)
-    const totalAmountRepaid = computed<bigint>(() => {
-        if (!isLoanActive.value || !hasRemainingDebtLoaded.value) return 0n
-        const repaid = principal - remainingDebt.value
-        return repaid > 0n ? repaid : 0n
-    })
-
-    const totalAmountRepaidFormatted = computed<string>(() => {
-        if (!totalAmountRepaid.value) return '0'
-        return Math.floor(Number(formatUnits(totalAmountRepaid.value, CREDIT_DECIMALS))).toLocaleString()
-    })
-
-    // Repayment progress percentage
-    const repaymentProgress = computed<number>(() => {
-        if (!isLoanActive.value || totalOwed.value === 0n) return 0
-        const progress = new Decimal(totalAmountRepaid.value.toString())
-            .div(new Decimal(totalOwed.value.toString()))
-            .mul(100)
-            .toNumber()
-        return Math.min(Math.floor(progress), 100)
-    })
 
     // Read loan data from installments product: [apr, defaultTimestamp, debtLimitTangent]
     const loanDataQuery = useReadContract({
         abi: PWN_INSTALLMENTS_PRODUCT_ABI,
         address: PWN_INSTALLMENTS_PRODUCT_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'loanData',
         args: computed(() => [PWN_LOAN_ADDRESS, loanId.value] as const),
         query: {
@@ -108,10 +88,10 @@ export default function useLoanStatus() {
     const apr = computed<bigint>(() => loanData.value ? BigInt(loanData.value[0]) : 0n)
     const defaultTimestamp = computed<bigint>(() => loanData.value ? BigInt(loanData.value[1]) : 0n)
     const debtLimitTangent = computed<bigint>(() => loanData.value ? BigInt(loanData.value[2]) : 0n)
-
     const aprDecimalsQuery = useReadContract({
         abi: PWN_INSTALLMENTS_PRODUCT_ABI,
         address: PWN_INSTALLMENTS_PRODUCT_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'APR_DECIMALS',
     })
 
@@ -123,6 +103,7 @@ export default function useLoanStatus() {
     const debtLimitTangentDecimalsQuery = useReadContract({
         abi: PWN_INSTALLMENTS_PRODUCT_ABI,
         address: PWN_INSTALLMENTS_PRODUCT_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'DEBT_LIMIT_TANGENT_DECIMALS',
     })
 
@@ -130,10 +111,84 @@ export default function useLoanStatus() {
         debtLimitTangentDecimalsQuery.data.value ? BigInt(debtLimitTangentDecimalsQuery.data.value) : 0n
     )
 
+    const loanDurationSeconds = computed<number>(() => {
+        if (loanStartTimestamp.value <= 0n || defaultTimestamp.value <= loanStartTimestamp.value) return 0
+        return Number(defaultTimestamp.value - loanStartTimestamp.value)
+    })
+
+    const repaymentPeriodSeconds = computed<number>(() => {
+        if (
+            originalPrincipal.value <= 0n
+            || debtLimitTangent.value <= 0n
+            || debtLimitTangentDecimals.value <= 0n
+        ) return 0
+
+        const tangentScale = 10n ** debtLimitTangentDecimals.value
+        return Number(originalPrincipal.value * tangentScale / debtLimitTangent.value)
+    })
+
+    const loanPostponementSeconds = computed<number>(() => Math.max(
+        0,
+        loanDurationSeconds.value - repaymentPeriodSeconds.value,
+    ))
+    const loanDurationMonths = computed<number>(() => Math.max(
+        0,
+        Math.round(loanDurationSeconds.value / REPAYMENT_MONTH_IN_SECONDS),
+    ))
+    const repaymentCount = computed<number>(() => Math.max(
+        0,
+        Math.round(repaymentPeriodSeconds.value / REPAYMENT_MONTH_IN_SECONDS),
+    ))
+    const loanPostponementMonths = computed<number>(() => Math.max(
+        0,
+        loanDurationMonths.value - repaymentCount.value,
+    ))
+    const annualRate = computed<number>(() => aprDecimals.value > 0n
+        ? Number(apr.value) / 10 ** Number(aprDecimals.value)
+        : 0)
+    const repaymentPlan = computed(() => calculateAmortizedRepaymentPlan({
+        annualRate: annualRate.value,
+        holidayMonths: loanPostponementMonths.value,
+        paymentCount: repaymentCount.value,
+        principal: Number(formatUnits(originalPrincipal.value, CREDIT_DECIMALS)),
+    }))
+
+    // This is an origination-time conventional amortization estimate. Actual
+    // lifetime interest changes when the borrower repays early or irregularly.
+    const totalOwed = computed<bigint>(() => {
+        if (repaymentPlan.value.totalRepayment <= 0) return 0n
+        const amount = new Decimal(repaymentPlan.value.totalRepayment)
+            .toDecimalPlaces(CREDIT_DECIMALS, Decimal.ROUND_HALF_UP)
+            .toFixed(CREDIT_DECIMALS)
+        return parseUnits(amount, CREDIT_DECIMALS)
+    })
+    const totalOwedFormatted = computed<string>(() => {
+        if (totalOwed.value <= 0n) return '0'
+        return Math.round(Number(formatUnits(totalOwed.value, CREDIT_DECIMALS))).toLocaleString()
+    })
+
+    // Repayment events expose the actual cash received, including both principal
+    // and interest. Current debt cannot be subtracted from original principal to
+    // recover this value because debt continues to accrue interest.
+    const totalAmountRepaid = computed<bigint>(() => repaymentEvents.value.at(-1)?.cumulativeRepayment ?? 0n)
+    const totalAmountRepaidFormatted = computed<string>(() => {
+        if (!totalAmountRepaid.value) return '0'
+        return Math.floor(Number(formatUnits(totalAmountRepaid.value, CREDIT_DECIMALS))).toLocaleString()
+    })
+    const repaymentProgress = computed<number>(() => {
+        if (!isLoanActive.value || totalOwed.value === 0n) return 0
+        const progress = new Decimal(totalAmountRepaid.value.toString())
+            .div(new Decimal(totalOwed.value.toString()))
+            .mul(100)
+            .toNumber()
+        return Math.min(Math.floor(progress), 100)
+    })
+
     // Check if defaulted
     const isDefaultedQuery = useReadContract({
         abi: PWN_INSTALLMENTS_PRODUCT_ABI,
         address: PWN_INSTALLMENTS_PRODUCT_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'isDefaulted',
         args: computed(() => [PWN_LOAN_ADDRESS, loanId.value] as const),
         query: {
@@ -158,6 +213,33 @@ export default function useLoanStatus() {
         return 'active'
     })
 
+    const loanStatusError = computed(() =>
+        loanIdQuery.error.value
+        ?? remainingDebtQuery.error.value
+        ?? loanDetailsQuery.error.value
+        ?? loanDataQuery.error.value
+        ?? aprDecimalsQuery.error.value
+        ?? debtLimitTangentDecimalsQuery.error.value
+        ?? isDefaultedQuery.error.value
+        ?? (originalPrincipal.value <= 0n || loanStartTimestamp.value <= 0n ? loanEventsError.value : null)
+        ?? null
+    )
+
+    const isLoanStatusReady = computed(() => {
+        if (loanIdQuery.isPending.value) return false
+        if (!isLoanActive.value) return true
+
+        return !remainingDebtQuery.isPending.value
+            && !loanDetailsQuery.isPending.value
+            && !loanDataQuery.isPending.value
+            && !aprDecimalsQuery.isPending.value
+            && !debtLimitTangentDecimalsQuery.isPending.value
+            && !isDefaultedQuery.isPending.value
+            && !areLoanEventsLoading.value
+            && originalPrincipal.value > 0n
+            && loanStartTimestamp.value > 0n
+    })
+
     const nextPaymentDeadline = computed<bigint | null>(() => {
         if (!isLoanActive.value || remainingDebt.value === 0n || !loanDetails.value) return null
         if (aprDecimals.value === 0n || debtLimitTangentDecimals.value === 0n) return null
@@ -175,10 +257,31 @@ export default function useLoanStatus() {
         })
     })
 
+    // Reconstruct the first protocol deadline from the immutable origination
+    // state. PWN stores a continuous debt limit rather than monthly due dates,
+    // so this is the authoritative anchor for the modeled monthly ledger.
+    const firstPaymentDeadline = computed<bigint | null>(() => {
+        if (!isLoanActive.value || originalPrincipal.value === 0n || loanStartTimestamp.value === 0n) return null
+        if (aprDecimals.value === 0n || debtLimitTangentDecimals.value === 0n) return null
+
+        return calculateNextPaymentDeadline({
+            principal: originalPrincipal.value,
+            pastAccruedInterest: 0n,
+            lastUpdateTimestamp: loanStartTimestamp.value,
+            apr: apr.value,
+            aprDecimals: aprDecimals.value,
+            defaultTimestamp: defaultTimestamp.value,
+            debtLimitTangent: debtLimitTangent.value,
+            debtLimitTangentDecimals: debtLimitTangentDecimals.value,
+            currentTimestamp: loanStartTimestamp.value,
+        })
+    })
+
     // Vault total assets (USDC available)
     const totalVaultAssetsQuery = useReadContract({
         abi: PWN_CROWDSOURCE_LENDER_VAULT_ABI,
         address: PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'totalAssets',
     })
 
@@ -192,6 +295,7 @@ export default function useLoanStatus() {
     const totalCollateralAssetsQuery = useReadContract({
         abi: PWN_CROWDSOURCE_LENDER_VAULT_ABI,
         address: PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'totalCollateralAssets',
         query: {
             enabled: isLoanActive,
@@ -208,6 +312,7 @@ export default function useLoanStatus() {
     const maxWithdrawQuery = (userAddress: Ref<`0x${string}` | undefined>) => useReadContract({
         abi: PWN_CROWDSOURCE_LENDER_VAULT_ABI,
         address: PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS,
+        chainId: PROPOSAL_CHAIN_ID,
         functionName: 'maxWithdraw',
         args: computed(() => [userAddress.value!] as const),
         query: {
@@ -221,15 +326,24 @@ export default function useLoanStatus() {
             remainingDebtQuery.refetch(),
             loanDetailsQuery.refetch(),
             loanDataQuery.refetch(),
+            aprDecimalsQuery.refetch(),
+            debtLimitTangentDecimalsQuery.refetch(),
             isDefaultedQuery.refetch(),
             totalVaultAssetsQuery.refetch(),
             totalCollateralAssetsQuery.refetch(),
+            refetchLoanEvents(),
         ])
     }
 
     return {
         isLoanActive,
+        isLoanStatusReady,
+        loanStatusError,
         loanId,
+        loanPrincipal,
+        loanCollateralAmount,
+        loanLastUpdateTimestamp,
+        originalPrincipal,
         remainingDebt,
         remainingDebtFormatted,
         totalOwed,
@@ -238,10 +352,27 @@ export default function useLoanStatus() {
         totalAmountRepaidFormatted,
         repaymentProgress,
         loanData,
+        apr,
+        aprDecimals,
+        debtLimitTangent,
+        debtLimitTangentDecimals,
         defaultTimestamp,
+        loanStartTimestamp,
+        loanDurationSeconds,
+        loanDurationMonths,
+        loanPostponementSeconds,
+        loanPostponementMonths,
+        repaymentPeriodSeconds,
+        repaymentCount,
+        repaymentPlan,
+        repaymentEvents,
+        loanEventsError,
+        areLoanEventsLoading,
+        refetchLoanEvents,
         isDefaulted,
         isFullyRepaid,
         loanStatus,
+        firstPaymentDeadline,
         nextPaymentDeadline,
         totalVaultAssets,
         totalVaultAssetsFormatted,

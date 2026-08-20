@@ -200,7 +200,11 @@ const { isPending: isApproving, mutateAsync: approveForDepositIfNeededMutateAsyn
 const { isPending: isWithdrawing, mutateAsync: withdrawMutateAsync } = useMutation({
     mutationKey: [MutationIds.Withdraw],
     mutationFn: async ({ step }: { step: ToastStep }) => {
-        await withdraw(parseUnits(amountToWithdrawFormatted.value, CREDIT_DECIMALS), step)
+        await withdraw(
+            parseUnits(amountToWithdrawFormatted.value, CREDIT_DECIMALS),
+            step,
+            PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS,
+        )
     },
     onSuccess() {
         refetchTotalDepositedAssets()

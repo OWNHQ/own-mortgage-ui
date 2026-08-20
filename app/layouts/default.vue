@@ -1,11 +1,40 @@
 <template>
-  <div class="min-h-screen bg-background">
-    <div class="p-3 sm:p-4 mx-auto max-w-[1440px]">
+  <div class="platform-canvas">
+    <div class="platform-shell">
       <TheHeader />
-      <main>
+      <main class="platform-main">
         <slot />
       </main>
       <TheFooter />
     </div>
   </div>
 </template>
+
+<style scoped>
+.platform-canvas {
+  min-height: 100vh;
+  background: var(--canvas);
+}
+
+.platform-shell {
+  width: 100%;
+  max-width: 1410px;
+  min-height: 100vh;
+  margin-inline: auto;
+  padding: 32px 40px;
+}
+
+.platform-main {
+  margin-top: 20px;
+}
+
+@media (max-width: 820px) {
+  .platform-shell {
+    padding: 16px;
+  }
+
+  .platform-main {
+    margin-top: 16px;
+  }
+}
+</style>

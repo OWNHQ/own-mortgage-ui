@@ -7,6 +7,7 @@ import Decimal from "decimal.js";
 
 export const CREDIT_ADDRESS = proposal.creditAddress as Address
 export const COLLATERAL_ADDRESS = proposal.collateralAddress as Address
+export const BORROWER_ADDRESS = proposal.allowedAcceptor as Address
 export const LOAN_LTV = Number(proposal.loanToValue) // e.g. 7500 is 75%
 export const POSTPONEMENT = Number(proposal.postponement)  // how long till the first repayment, in seconds
 export const POSTPONEMENT_IN_DAYS = Math.round(POSTPONEMENT / 86400)
@@ -46,6 +47,10 @@ export const MAX_AMOUNT_FORMATTED: number = 180000;
 export const MAX_AMOUNT: bigint = parseUnits(String(MAX_AMOUNT_FORMATTED), CREDIT_DECIMALS)
 
 export const TOTAL_AMOUNT_TO_REPAY = Decimal("192500")
+
+// This amount funded the originated loan without receiving lender-vault shares.
+// Its repayment is therefore distributed across the remaining share holders.
+export const SHARELESS_CONTRIBUTION_AMOUNT = 10_000
 
 // note: holds value between 0 and 1 (e.g. 60% is represented as 0.6)
 export const MINIMAL_CREDIT_AMOUNT_PERCENTAGE: string = new Decimal(formatUnits(MINIMAL_CREDIT_AMOUNT, CREDIT_DECIMALS)).div(formatUnits(MAX_AMOUNT, CREDIT_DECIMALS)).toDecimalPlaces(2, Decimal.ROUND_FLOOR).toString()

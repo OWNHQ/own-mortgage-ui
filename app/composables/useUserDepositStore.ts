@@ -44,6 +44,8 @@ export const useUserDepositStore = defineStore('userDeposit', () => {
 
     // Sum of shares from both vaults (for backward compatibility)
     const userShares = computed<bigint>(() => oldVaultUserShares.value + newVaultUserShares.value)
+    const convertedUserShares = ref<bigint>(0n)
+    const isUserDepositEvaluating = ref(false)
 
     const isFetchingUserDeposit = computed(() =>
         oldVaultUserSharesQuery.isFetching.value || newVaultUserSharesQuery.isFetching.value
@@ -52,6 +54,7 @@ export const useUserDepositStore = defineStore('userDeposit', () => {
     // Convert shares to assets and sum from both vaults
     const userDeposit = computedAsync<bigint>(
         async () => {
+            const sourceShares = userShares.value
             const promises: Promise<bigint>[] = []
 
             if (oldVaultUserShares.value > 0n) {
@@ -79,14 +82,31 @@ export const useUserDepositStore = defineStore('userDeposit', () => {
             }
 
             if (promises.length === 0) {
+                convertedUserShares.value = sourceShares
                 return 0n
             }
 
-            const results = await Promise.all(promises)
-            return results.reduce((sum, value) => sum + value, 0n)
+            try {
+                const results = await Promise.all(promises)
+                convertedUserShares.value = sourceShares
+                return results.reduce((sum, value) => sum + value, 0n)
+            } catch {
+                convertedUserShares.value = sourceShares
+                return 0n
+            }
         },
-        0n
+        0n,
+        isUserDepositEvaluating,
     )
+
+    const isUserDepositReady = computed(() => !userAddress.value || (
+        !oldVaultUserSharesQuery.isPending.value
+        && !newVaultUserSharesQuery.isPending.value
+        && !oldVaultUserSharesQuery.isFetching.value
+        && !newVaultUserSharesQuery.isFetching.value
+        && !isUserDepositEvaluating.value
+        && convertedUserShares.value === userShares.value
+    ))
 
     // Track old vault deposit separately for upgrade flow
     const oldVaultUserDeposit = computedAsync<bigint>(
@@ -131,6 +151,7 @@ export const useUserDepositStore = defineStore('userDeposit', () => {
         userDepositFormatted,
         userDepositFormattedDecimals,
         isFetchingUserDeposit,
+        isUserDepositReady,
         refetchUserShares,
     }
 })

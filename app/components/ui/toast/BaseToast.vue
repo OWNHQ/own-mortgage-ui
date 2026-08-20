@@ -2,13 +2,12 @@
     <div
       v-if="toast"
       :class="[
-        'flex flex-col h-full p-2 opacity-100 transition-opacity duration-[1400ms]',
-        'bg-[var(--background)]',
+        'transaction-toast flex h-full flex-col p-5 opacity-100 transition-opacity duration-[1400ms]',
         { 'opacity-0': startFadeOut }
       ]"
       @mouseenter="isHovering = true"
       @mouseleave="isHovering = false">
-      <div class="h-16 flex justify-between pb-4 items-center border-b border-[#434343]">
+      <div class="transaction-toast__header flex min-h-16 items-center justify-between border-b pb-4">
         <div class="flex items-center gap-4">
           <div class="relative mr-2">
             <img
@@ -21,21 +20,22 @@
               width="40"
               class="absolute top-4 left-4"/>
           </div>
-          <div class="font-screener">
+          <div class="transaction-toast__title">
             {{ toast.title }}
           </div>
         </div>
-        <div
+        <button
           v-if="isCloseable"
-          class="cursor-pointer mr-2"
+          type="button"
+          class="transaction-toast__close"
+          aria-label="Dismiss notification"
           @click="handleCloseToast">
-          <img
-            src="/icons/close.svg"
-            width="20"
-            height="20"/>
-        </div>
+          <svg viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M1 11 11 1M1 1l10 10" />
+          </svg>
+        </button>
       </div>
-      <div class="py-4 flex flex-col max-h-[140px] overflow-auto scroll-smooth">
+      <div class="flex max-h-[180px] flex-col overflow-auto py-4 scroll-smooth">
         <div
           v-for="(step, index) in toast.steps"
           :key="step.text">
@@ -170,8 +170,7 @@ const isCloseable = computed(() => isError.value || isRunningLong.value || isAll
   margin: 60px 0 0 !important;
   padding: 0 !important;
   background-color: transparent !important;
-  border-radius: 0 !important;
-  border-color: white;
+  border-radius: 24px !important;
   overflow: visible !important;
 
   &:not(:first-child) {
@@ -186,7 +185,62 @@ const isCloseable = computed(() => isError.value || isRunningLong.value || isAll
 
 .Vue-Toastification__toast-component-body {
   width: 100%;
-  border: 1px solid #434343;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgb(0 0 0 / 28%);
+}
+
+.transaction-toast {
+  border-radius: 24px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-geist);
+}
+
+.transaction-toast__header {
+  border-color: var(--rule);
+}
+
+.transaction-toast__title {
+  font-family: var(--font-newsreader);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 30px;
+}
+
+.transaction-toast__close {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-right: -8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.transaction-toast__close svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+
+.transaction-toast__close:hover {
+  background: var(--paper-deep);
+  color: var(--teal-dark);
+}
+
+.transaction-toast__close:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
 }
 
 .Vue-Toastification__close-button {
@@ -240,4 +294,3 @@ const isCloseable = computed(() => isError.value || isRunningLong.value || isAll
 }
 
 </style>
-

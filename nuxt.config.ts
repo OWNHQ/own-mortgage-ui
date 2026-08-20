@@ -1,5 +1,9 @@
 import tailwindcss from "@tailwindcss/vite";
 import Decimal from "decimal.js"
+import { fileURLToPath } from "node:url"
+
+// Keep Nuxt's Vite plugins on the same esbuild binary when Bun installs nested copies.
+process.env.ESBUILD_BINARY_PATH ??= fileURLToPath(new URL("./node_modules/esbuild/bin/esbuild", import.meta.url))
 
 // Configure Decimal.js to use normal notation instead of scientific notation
 Decimal.config({ toExpPos: 9000000000000000 })

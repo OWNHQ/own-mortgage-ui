@@ -1,4 +1,5 @@
 import { useLocalStorage } from "@vueuse/core"
+import { toValue, type MaybeRefOrGetter } from 'vue'
 import { getAddress, type Address } from "viem"
 import { PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS, OLD_PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS } from '~/constants/addresses'
 import { readContracts } from "@wagmi/core/actions"
@@ -285,7 +286,7 @@ export const loadCrowdsourceLenders = async (forceRefresh: boolean = false) => {
   }
 }
 
-export const useCrowdsourceLender = () => {
+export const useCrowdsourceLender = (enabled: MaybeRefOrGetter<boolean> = true) => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const lenders = ref<CrowdsourceLender[]>([])
@@ -312,10 +313,13 @@ export const useCrowdsourceLender = () => {
   // Computed properties
   const totalLenders = computed(() => lenders.value.length)
 
-  // Auto-load on mount
-  onMounted(() => {
-    loadLenders()
-  })
+  watch(
+    () => toValue(enabled),
+    shouldLoad => {
+      if (shouldLoad) void loadLenders()
+    },
+    { immediate: true },
+  )
 
   return {
     // Data
