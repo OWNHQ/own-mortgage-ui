@@ -1,7 +1,7 @@
 <template>
   <section id="project-team" class="project-team" aria-labelledby="project-team-title">
     <header class="project-team__header">
-      <h2 id="project-team-title">Meet the team behind Bordel.</h2>
+      <h2 id="project-team-title">Meet the team behind the hackerspace.</h2>
     </header>
 
     <ul class="project-team__members">
