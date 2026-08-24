@@ -2,9 +2,11 @@
   "name": "own-mortgage-ui",
   "private": true,
   "type": "module",
+  "packageManager": "bun@1.3.13",
   "scripts": {
     "build": "nuxt build",
     "build-cf-pages": "nuxt build --preset=cloudflare_pages",
+    "cf:build": "bun install --frozen-lockfile && bun run build-cf-pages",
     "cf:dev": "XDG_CONFIG_HOME=.wrangler/config wrangler pages dev dist --ip 127.0.0.1 --persist-to .wrangler/state",
     "cf:setup-local": "bash ./scripts/setup-local-cf.sh",
     "dev": "nuxt dev",
