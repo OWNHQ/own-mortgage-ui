@@ -37,12 +37,9 @@ export const isScientificNotation = (num: number | string): boolean => {
   
 // examples of formatting: 1.1234567890 to 1.1234 or 0.00000000006448 to 0.00000000006
 export const formatDecimalPoint = (amount: number | string, numbersBehindDecimalPoint = 4, showZeroes = false): string => {
-    let stringAmount = ''
-    if (typeof amount === 'number' && isScientificNotation(amount)) {
-      stringAmount = amount.toFixed(20)
-    } else {
-      stringAmount = typeof amount === 'number' ? amount.toString() : amount.replace(/,/g, '')
-    }
+    const stringAmount = typeof amount === 'number'
+      ? isScientificNotation(amount) ? amount.toFixed(20) : amount.toString()
+      : amount.replace(/,/g, '')
   
     const [integerPart = '', decimalPart = ''] = stringAmount.split('.')
   
@@ -53,14 +50,10 @@ export const formatDecimalPoint = (amount: number | string, numbersBehindDecimal
     const decimalPlacesToKeep = numbersBehindDecimalPoint === 0 ? 0 : Math.max(numbersBehindDecimalPoint, firstNonZeroIndex + 1)
   
     const repeatedZeroes = parseRepeatedDecimal(`${integerPart}.${decimalPart || 0}`)
-    // Pad or truncate the decimal part
-    let formattedDecimal = decimalPart.padEnd(decimalPlacesToKeep, '0')
-  
-    if (!repeatedZeroes?.repeatedZeroes) {
-      formattedDecimal = decimalPart.slice(0, decimalPlacesToKeep)
-    } else if (repeatedZeroes?.repeatedZeroes && repeatedZeroes.repeatedZeroes > 0) {
-      formattedDecimal = decimalPart.slice(0, repeatedZeroes.repeatedZeroes + numbersBehindDecimalPoint)
-    }
+    // Truncate the decimal part while preserving significant digits after repeated zeroes.
+    const formattedDecimal = repeatedZeroes?.repeatedZeroes
+      ? decimalPart.slice(0, repeatedZeroes.repeatedZeroes + numbersBehindDecimalPoint)
+      : decimalPart.slice(0, decimalPlacesToKeep)
   
     // Remove trailing zeros
     let cleanedDecimal = formattedDecimal.replace(/0+$/, '')

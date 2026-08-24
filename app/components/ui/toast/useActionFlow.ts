@@ -23,10 +23,8 @@ export default function useActionFlow(toast: Ref<Toast>) {
   const continueFlow = async () => {
     const toastsStore = useToastsStore()
     // Ensure the toast is displayed
-    let displayedToast = toastsStore.getToast(toast.value.id)
-    if (!displayedToast) {
+    if (!toastsStore.getToast(toast.value.id)) {
       toastsStore.displayToast(toast.value)
-      displayedToast = toastsStore.getToast(toast.value.id)!
     }
 
     // Use a while loop to always get the latest displayedToast and process unprocessed steps
@@ -44,7 +42,6 @@ export default function useActionFlow(toast: Ref<Toast>) {
       try {
         success = await step.fn(step)
       } catch (err) {
-        success = false
         error = err as Error
       }
       if (!success) {
