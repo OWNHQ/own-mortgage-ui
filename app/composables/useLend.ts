@@ -3,10 +3,20 @@ import PWN_CROWDSOURCE_LENDER_VAULT_ABI from "~/assets/abis/v1.5/PWNCrowdsourceL
 import { PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS, OLD_PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS } from "~/constants/addresses"
 import { CREDIT_ADDRESS } from "~/constants/proposalConstants"
 import { useAccount } from "@wagmi/vue"
-import { readContract } from "@wagmi/core/actions"
+import { readContract, simulateContract } from "@wagmi/core/actions"
 import { wagmiConfig } from "~/config/appkit"
 import { sendTransaction } from "./useTransactions"
 import type { ToastStep } from "~/components/ui/toast/useToastsStore"
+
+type ClaimVaultExitOptions = {
+    ownerAddress: Address
+    receiverAddress: Address
+    step: ToastStep
+    vaultAddress: Address
+} & (
+    | { assets: bigint, method: 'withdraw' }
+    | { method: 'redeem', shares: bigint }
+)
 
 export default function useLend() {
     const amountInputStore = useAmountInputStore()
@@ -63,7 +73,11 @@ export default function useLend() {
         return true
     }
 
-    const withdraw = async (withdrawAmount: bigint, step: ToastStep, vaultAddress: Address) => {
+    const withdraw = async (
+        withdrawAmount: bigint,
+        step: ToastStep,
+        vaultAddress: Address = PWN_CROWDSOURCE_LENDER_VAULT_ADDRESS,
+    ) => {
         const withdrawTxReceipt = await sendTransaction({
             abi: PWN_CROWDSOURCE_LENDER_VAULT_ABI,
             functionName: 'withdraw',
@@ -72,6 +86,34 @@ export default function useLend() {
             chainId: connectedChainId.value,
         }, { step })
         return withdrawTxReceipt
+    }
+
+    const claimVaultExit = async (options: ClaimVaultExitOptions) => {
+        if (options.method === 'withdraw') {
+            const transaction = {
+                abi: PWN_CROWDSOURCE_LENDER_VAULT_ABI,
+                functionName: 'withdraw',
+                args: [options.assets, options.receiverAddress, options.ownerAddress],
+                address: options.vaultAddress,
+                account: options.ownerAddress,
+                chainId: connectedChainId.value,
+            } as const
+
+            await simulateContract(wagmiConfig, transaction)
+            return await sendTransaction(transaction, { step: options.step })
+        }
+
+        const transaction = {
+            abi: PWN_CROWDSOURCE_LENDER_VAULT_ABI,
+            functionName: 'redeem',
+            args: [options.shares, options.receiverAddress, options.ownerAddress],
+            address: options.vaultAddress,
+            account: options.ownerAddress,
+            chainId: connectedChainId.value,
+        } as const
+
+        await simulateContract(wagmiConfig, transaction)
+        return await sendTransaction(transaction, { step: options.step })
     }
 
     const redeemAll = async (vaultAddress: Address, withdrawSharesAmount: bigint, step: ToastStep) => {
@@ -110,6 +152,7 @@ export default function useLend() {
 
     return {
         checkApprovalNeeded,
+        claimVaultExit,
         approveForDepositIfNeeded,
         deposit,
         withdraw,

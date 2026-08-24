@@ -11,6 +11,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt build && nuxt preview",
     "postinstall": "nuxt prepare",
+    "test": "bun test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

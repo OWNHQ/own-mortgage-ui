@@ -8,19 +8,22 @@ import type { Address, Hex } from 'viem'
 import type { PartialWithRequired } from '@/typing/customTypes'
 import { typeSafeObjectKeys } from '@/typing/typescriptWrappers'
 import type { PROPOSAL_CHAIN_ID } from '~/constants/proposalConstants'
+import { createLenderClaimToastId } from '~/lib/lender-claim-action-id'
 
 export enum ToastActionEnum {
   DEPOSIT = 'DEPOSIT',
   ACCEPT_PROPOSAL = 'ACCEPT_PROPOSAL',
   REPAY = 'REPAY',
   WITHDRAW_LENDER = 'WITHDRAW_LENDER',
+  DONATE_LENDER_CLAIM = 'DONATE_LENDER_CLAIM',
 }
 
 const _actionIdToUniqueToastId = {
   [ToastActionEnum.DEPOSIT]: (amount: string, userAddress: Address) => `${ToastActionEnum.DEPOSIT}_${userAddress}_${amount}`,
   [ToastActionEnum.ACCEPT_PROPOSAL]: (creditAmount: string, userAddress: Address) => `${ToastActionEnum.ACCEPT_PROPOSAL}_${userAddress}_${creditAmount}`,
   [ToastActionEnum.REPAY]: (repaymentAmount: string, userAddress: Address) => `${ToastActionEnum.REPAY}_${userAddress}_${repaymentAmount}`,
-  [ToastActionEnum.WITHDRAW_LENDER]: (userAddress: Address) => `${ToastActionEnum.WITHDRAW_LENDER}_${userAddress}`,
+  [ToastActionEnum.WITHDRAW_LENDER]: (userAddress: Address, vaultAddress: Address, receiverAddress: Address, value: string, attemptId: string) => createLenderClaimToastId(ToastActionEnum.WITHDRAW_LENDER, userAddress, vaultAddress, receiverAddress, value, attemptId),
+  [ToastActionEnum.DONATE_LENDER_CLAIM]: (userAddress: Address, vaultAddress: Address, receiverAddress: Address, value: string, attemptId: string) => createLenderClaimToastId(ToastActionEnum.DONATE_LENDER_CLAIM, userAddress, vaultAddress, receiverAddress, value, attemptId),
 } as const
 
 export type ToastActionId = keyof typeof _actionIdToUniqueToastId
