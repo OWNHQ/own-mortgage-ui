@@ -139,11 +139,22 @@
         </p>
       </section>
 
-      <p class="project-description__closing">
-        <strong
-          >Bordel is not just a community. Bordel is a state of mind.</strong
-        >
-      </p>
+      <section>
+        <h3>Why Bordel?</h3>
+        <p>
+          In Czech, <em>bordel</em> means "a mess" - chaos, if you will. The
+          name embraces the idea that apparent disorder can contain a higher
+          kind of order: the creative tension from which new ideas, projects
+          and communities emerge.
+        </p>
+        <p>
+          The name may be provocative, but that is partly the point. It acts as
+          a filter for people drawn to substance over presentation - people
+          more interested in what the community builds and values than in the
+          form it takes. As members sometimes say, Bordel is not just a
+          community. Bordel is a state of mind.
+        </p>
+      </section>
     </div>
   </article>
 </template>
