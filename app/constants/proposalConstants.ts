@@ -3,6 +3,8 @@ import { proposal } from "@/lib/decode-proposal"
 import { mainnet } from "@reown/appkit/networks";
 import Decimal from "decimal.js";
 
+export { LOAN_CREATED_BLOCK } from './loan'
+
 // note: for getting the proposal data, see code in decode-proposal.ts and then update the values here
 
 export const CREDIT_ADDRESS = proposal.creditAddress as Address
@@ -46,10 +48,6 @@ export const MAX_AMOUNT_FORMATTED: number = 180000;
 export const MAX_AMOUNT: bigint = parseUnits(String(MAX_AMOUNT_FORMATTED), CREDIT_DECIMALS)
 
 export const TOTAL_AMOUNT_TO_REPAY = Decimal("192500")
-
-// Block containing the LOANCreated event for this mortgage (loan ID is read from the vault).
-// Historical repayment event queries can start here instead of scanning from contract deployment.
-export const LOAN_CREATED_BLOCK = 24_583_429n
 
 // note: holds value between 0 and 1 (e.g. 60% is represented as 0.6)
 export const MINIMAL_CREDIT_AMOUNT_PERCENTAGE: string = new Decimal(formatUnits(MINIMAL_CREDIT_AMOUNT, CREDIT_DECIMALS)).div(formatUnits(MAX_AMOUNT, CREDIT_DECIMALS)).toDecimalPlaces(2, Decimal.ROUND_FLOOR).toString()

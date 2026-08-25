@@ -89,7 +89,6 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      moralisApiKey: process.env.NUXT_PUBLIC_MORALIS_API_KEY,
       clarityId: process.env.NUXT_PUBLIC_CLARITY_ID,
     }
   },

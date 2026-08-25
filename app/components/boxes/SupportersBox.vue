@@ -60,8 +60,6 @@ import useUserDepositStore from '~/composables/useUserDepositStore';
 import { useEnsNames } from '~/composables/useEnsNames';
 import type { Address } from 'viem';
 
-// TODO after the loan has been accepted (created), do not modify the list of lenders anymore
-
 // TODO adjust user deposits amount after the loan has defaulted so they show up correctly...
 
 const { lenders, totalLenders, isLoading } = useCrowdsourceLender()

@@ -84,7 +84,6 @@ Notes:
 
 - Copy `.env.example` to `.env` for local development.
 - Public env vars currently used:
-  - `NUXT_PUBLIC_MORALIS_API_KEY`
   - `NUXT_PUBLIC_CLARITY_ID`
 - Voucher verification is Ethereum mainnet only.
 
