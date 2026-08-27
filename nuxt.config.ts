@@ -90,6 +90,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       clarityId: process.env.NUXT_PUBLIC_CLARITY_ID,
+      inboundGatewayUrl: process.env.NUXT_PUBLIC_INBOUND_GATEWAY_URL || "https://forms.own.casa/v1/submissions",
     }
   },
 });

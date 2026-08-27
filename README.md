@@ -50,6 +50,9 @@ Cloudflare bindings required for the voucher feature:
 - D1 binding named `DB`
 - Ethereum mainnet wallet signatures only
 
+Configure `NUXT_PUBLIC_INBOUND_GATEWAY_URL` for production and preview builds.
+It defaults to `https://forms.own.casa/v1/submissions`.
+
 The conference voucher schema is in [database/conference-voucher.schema.sql](/home/microhoffman/pwn/own-mortgage-ui/database/conference-voucher.schema.sql). Seed production with a private SQL file derived from [database/conference-voucher.seed.example.sql](/home/microhoffman/pwn/own-mortgage-ui/database/conference-voucher.seed.example.sql), but do not commit real addresses or voucher codes.
 
 ### Local Cloudflare Testing

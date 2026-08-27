@@ -26,6 +26,8 @@
             v-model="formData.commsChannel"
             type="text" 
             required 
+            autocomplete="off"
+            :maxlength="INBOUND_CONTACT_MAX_LENGTH"
             placeholder="Email, Telegram, Signal, etc."
             class="w-full px-3 py-2 border rounded-md bg-background"
           >
@@ -39,10 +41,23 @@
             id="projectDescription" 
             v-model="formData.projectDescription"
             required
+            :maxlength="INBOUND_MESSAGE_MAX_LENGTH"
             rows="6"
             placeholder="Tell us about your project..."
             class="w-full px-3 py-2 border rounded-md bg-background resize-y"
           ></textarea>
+        </div>
+
+        <div class="form-honeypot" aria-hidden="true">
+          <label for="early-access-company-fax">Company fax</label>
+          <input
+            id="early-access-company-fax"
+            v-model="formData.gotcha"
+            type="text"
+            name="companyFax"
+            autocomplete="off"
+            tabindex="-1"
+          >
         </div>
 
         <Button type="submit" class="w-full" :disabled="isSubmitting">
@@ -59,6 +74,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import {
+  INBOUND_CONTACT_MAX_LENGTH,
+  INBOUND_MESSAGE_MAX_LENGTH,
+  buildBorrowerSubmission,
+} from '~/utils/inboundSubmission'
 
 interface Props {
     displayOpenButton?: boolean
@@ -71,40 +91,34 @@ const isOpen = ref(false)
 const isSubmitting = ref(false)
 const submitMessage = ref('')
 const submitSuccess = ref(false)
+const runtimeConfig = useRuntimeConfig()
 
 const formData = ref({
   commsChannel: '',
-  projectDescription: ''
+  projectDescription: '',
+  gotcha: '',
 })
-
-// Replace this URL with your Google Apps Script web app URL
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw03rLMfrOQSbX2MkRrpFHxTHM6qWjOkgTUZON7qv9qii-coSHXHmDW-vKu5NxZzgPVpA/exec'
 
 const handleSubmit = async () => {
   isSubmitting.value = true
   submitMessage.value = ''
   
   try {
-    await fetch(GOOGLE_SCRIPT_URL, {
+    await $fetch(runtimeConfig.public.inboundGatewayUrl, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        commsChannel: formData.value.commsChannel,
-        projectDescription: formData.value.projectDescription,
-        timestamp: new Date().toISOString()
-      })
+      body: buildBorrowerSubmission({
+        ...formData.value,
+        pageSource: window.location.href,
+      }),
     })
     
-    // With no-cors mode, we can't read the response, so assume success
     submitMessage.value = 'Application submitted successfully!'
     submitSuccess.value = true
     
     // Reset form
     formData.value.commsChannel = ''
     formData.value.projectDescription = ''
+    formData.value.gotcha = ''
     
     // Close modal after 2 seconds
     setTimeout(() => {
@@ -129,3 +143,13 @@ defineExpose({
     openModal
 })
 </script>
+
+<style scoped>
+.form-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+</style>
